@@ -4,17 +4,17 @@ import paho.mqtt.client as mqtt
 
 
 class Button:
-    def __init__(self, id, label, icon, action):
+    def __init__(self, id=-1, label='', icon='', code='pass'):
         self.id = id
         self.label = label
         self.icon = icon
+        self.code = code
+        self.add_action(self.code)
 
-    def add_action(self, func):
-        return setattr(self, 'action', types.MethodType(func, self))
-
-
-def make_action(code):
-    return FunctionType(compile(f'def test_action(self):\n{code}', "file", "exec").co_consts[0], globals(), "action")
+    def add_action(self, code):
+        return setattr(self, 'action', types.MethodType(
+            FunctionType(compile(f'def action(self):\n    {code}', "file", "exec").co_consts[0], globals(), "action"),
+            self))
 
 
 # Create function for receiving messages
@@ -50,20 +50,19 @@ if __name__ == "__main__":
     vban_output = 'speakers'
     topic = f'vban/{vban_server}/{vban_input}/{vban_output}/out'
 
-    bu1 = Button(0, "Button 1", "test.png", None)
-    bu2 = Button(1, "Button 1", "test.png", None)
-
-    code1 = '''    
+    code1 = '''
     client.publish("testi", "test")
     print(self.icon)
     print("test")
     '''
-    code2 = '   print(self.icon)'
+    code2 = 'print(self.icon)'
 
-    bu1.add_action(make_action(code1))
-    bu2.add_action(make_action(code2))
+    bu1 = Button(0, "Button 1", "test.png", code1)
+    bu2 = Button(1, "Button 2", "test.png", code2)
+    bu3 = Button(1, "Button 3", "test.png")
 
     bu1.action()
     bu2.action()
+    bu3.action()
 
     client.loop_stop()
