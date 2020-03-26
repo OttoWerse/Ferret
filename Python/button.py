@@ -16,6 +16,8 @@ class Button:
             FunctionType(compile(f'def action(self):\n    {code}', "file", "exec").co_consts[0], globals(), "action"),
             self))
 
+    def get_action(self):
+        return self.code
 
 # Create function for receiving messages
 def on_message(client, userdata, message):
@@ -45,6 +47,7 @@ if __name__ == "__main__":
     # Start the loop
     client.loop_start()
 
+
     vban_server = 'saturn'
     vban_input = 'landsat'
     vban_output = 'speakers'
@@ -60,9 +63,14 @@ if __name__ == "__main__":
     bu1 = Button(0, "Button 1", "test.png", code1)
     bu2 = Button(1, "Button 2", "test.png", code2)
     bu3 = Button(1, "Button 3", "test.png")
+    bu4 = Button(1, "Button 3", "test.png")
 
     bu1.action()
     bu2.action()
     bu3.action()
+
+    print(bu1.__dict__)
+
+    bu4.action()
 
     client.loop_stop()
