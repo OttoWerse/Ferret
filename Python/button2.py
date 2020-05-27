@@ -100,7 +100,7 @@ def key_change_callback_default(deck, key, state):
 
 if __name__ == "__main__":
     # MQTT broker Settings
-    broker = "192.169.4.5"
+    broker = "192.169.0.203"
     port = 1883
 
     # Create MQTT client
