@@ -44,6 +44,8 @@ def render_key_image(deck, icon_filename, font_filename, label_text, fill):
 # Creates a new key image based on the key index, style and current key state
 # and updates the image on the StreamDeck.
 def update_key_image(deck, key, icon, label, fill):
+    print('deck')
+    print(deck)
     name = "exit"
     icon = os.path.join(ASSETS_PATH, icon)
 
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     port = 1883
 
     # Create MQTT client
-    client = mqtt.Client("Ferret2")
+    client = mqtt.Client("Ferret3")
 
     # Assign on methods
     client.on_publish = on_publish
