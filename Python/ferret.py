@@ -163,7 +163,7 @@ if __name__ == "__main__":
     # Create a client
     broker = "192.169.0.203"
     port = 1883
-    client = mqtt.Client("Ferret")
+    client = mqtt.Client("Ferret419")
     client.connect(broker, port)
 
     # Create an MQTT Action
