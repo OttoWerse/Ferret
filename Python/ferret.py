@@ -215,6 +215,7 @@ class MqttAction(Action):
         colors : dict
             a dict of colors corresponding to received payload
     """
+
     def __init__(self, client, topic, payload, icons, labels, colors):
         self.client = client
         self.topic = topic
@@ -229,6 +230,7 @@ class MqttAction(Action):
         # Create a function to be executed on press (this might be used in the future)
         def on_press():
             pass
+
         # Assign the function to the attribute of the same name
         self.on_press = on_press
 
@@ -237,6 +239,7 @@ class MqttAction(Action):
             # Sending the given topic as a normalized string (homie convention)
             # TODO: Handle spaces and special characters
             self.client.publish(self.topic + '/in', str(self.payload).lower())
+
         # Assign the function to the attribute of the same name
         self.on_release = on_release
 
@@ -256,7 +259,9 @@ class MqttAction(Action):
             label = labels[str]
             color = colors[str]
             # Update the image on the hardware key
+            print(icon)
             update_key_image(hardware, index, icon, label, color)
+
         # Assigning the function to the MQTT client
         self.client.on_message = on_message
 
@@ -272,6 +277,7 @@ class ViewAction(Action):
         deck : deck object
             the deck where the view is to be changed
     """
+
     def __init__(self, deck, view):
         self.deck = deck
         self.view = view
@@ -279,12 +285,14 @@ class ViewAction(Action):
         # Create a function to be executed on press (this might be used in the future)
         def on_press():
             pass
+
         # Assign the function to the attribute of the same name
         self.on_press = on_press
 
         # Create a function to be executed on release
         def on_release():
             self.deck.switch_view(view)
+
         # Assign the function to the attribute of the same name
         self.on_release = on_release
 
@@ -296,38 +304,32 @@ if __name__ == "__main__":
     client = mqtt.Client("Ferret")
     client.connect(broker, port)
 
-    # Create an MQTT Action
-    topic = 'mqtt-test'
-    payload = 'hello World'
-    icons = {
-        'hello world': 'repeat.png'
-    }
-    labels = {
-        'hello world': 'Moin'
-    }
-    colors = {
-        'hello world': '#ffffff'
-    }
-    action1 = MqttAction(client, topic, payload, icons, labels, colors)
-
-    # Create another Key
-    key1 = Key('testKey', 'test.png', action1)
-
     # Create Keys
     keys0 = []
     print(f'keys0: {keys0}')
-    # Create more Keys
-    keys1 = [key1]
-    print(f'keys1: {keys1}')
-
     # Create a View
     view0 = View('mainView', keys0)
-
     # Create Views
     views = {
         'mainView': view0
     }
-    print(views)
+    # Create an MQTT Action
+    topic = 'mqtt-test'
+    payload = 'ping'
+    icons = {
+        'true': 'repeat.png',
+        'false' : 'repeat-off.png',
+    }
+    labels = {
+        'true': 'An',
+        'false' : 'Aus',
+    }
+    colors = {
+        'true': '#ffffff',
+        'false': '#ffffff',
+    }
+    # Add a key
+    view0.add_key(1, Key('mainKey', 'test.png', MqttAction(client, topic, payload, icons, labels, colors)))
 
     # Find StreamDeck
     streamdecks = DeviceManager().enumerate()
@@ -340,9 +342,5 @@ if __name__ == "__main__":
 
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
-
-    deck.add_view(View('testView', keys1))
-    # Add a key
-    view0.add_key(1, Key('mainKey', 'test.png', ViewAction(deck, 'testView')))
 
     client.loop_forever()
