@@ -238,7 +238,7 @@ class MqttAction(Action):
         def on_release():
             # Sending the given topic as a normalized string (homie convention)
             # TODO: Handle spaces and special characters
-            self.client.publish(self.topic + '/in', str(self.payload).lower())
+            self.client.publish(self.topic + '/in', str(self.get_payload()).lower())
 
         # Assign the function to the attribute of the same name
         self.on_release = on_release
@@ -247,9 +247,6 @@ class MqttAction(Action):
         def on_message(client, userdata, message):
             # Decode the message
             str = message.payload.decode("utf-8")
-            print(str)
-            print(f'Key: {self.key}')
-            print(f'Hardware: {self.key.view.deck.hardware}')
             # Determine the StreamDeck hardware the key is currently displayed on
             hardware = self.key.view.deck.hardware
             # Determine the index of the key on the StreamDeck hardware
@@ -259,11 +256,44 @@ class MqttAction(Action):
             label = labels[str]
             color = colors[str]
             # Update the image on the hardware key
-            print(icon)
             update_key_image(hardware, index, icon, label, color)
+            self.set_payload(str)
 
         # Assigning the function to the MQTT client
         self.client.on_message = on_message
+
+    def get_payload(self):
+        return self.payload
+
+    def set_payload(self, payload):
+        pass
+
+
+class MqttToggle(MqttAction):
+    """
+    A MQTT toggle is a type of MQTT action that specifically deals with boolean payloads
+    Attributes:
+        on_press : method
+            the method to be executed, when the key is pressed down (as for now this is unused)
+        on_release : method
+            the method to be executed, when the key is released up (sends an MQTT packet)
+    """
+
+    def __init__(self, client, topic, payload, icons, labels, colors):
+        MqttAction.__init__(self, client, topic, payload, icons, labels, colors)
+
+    def get_payload(self):
+        print(f'GET {self.payload}')
+        self.payload = not self.payload
+        print(f'NOW {self.payload}')
+        return self.payload
+
+    def set_payload(self, payload):
+        print(f'SET {payload}')
+        if payload.lower() == 'true':
+            self.payload = True
+        elif payload.lower() == 'false':
+            self.payload = False
 
 
 class ViewAction(Action):
@@ -306,7 +336,6 @@ if __name__ == "__main__":
 
     # Create Keys
     keys0 = []
-    print(f'keys0: {keys0}')
     # Create a View
     view0 = View('mainView', keys0)
     # Create Views
@@ -318,18 +347,18 @@ if __name__ == "__main__":
     payload = 'ping'
     icons = {
         'true': 'repeat.png',
-        'false' : 'repeat-off.png',
+        'false': 'repeat-off.png',
     }
     labels = {
         'true': 'An',
-        'false' : 'Aus',
+        'false': 'Aus',
     }
     colors = {
-        'true': '#ffffff',
-        'false': '#ffffff',
+        'true': '#ff00ff',
+        'false': '#00ffff',
     }
     # Add a key
-    view0.add_key(1, Key('mainKey', 'test.png', MqttAction(client, topic, payload, icons, labels, colors)))
+    view0.add_key(1, Key('mainKey', 'test.png', MqttToggle(client, topic, payload, icons, labels, colors)))
 
     # Find StreamDeck
     streamdecks = DeviceManager().enumerate()
