@@ -2,9 +2,10 @@ from tkinter import *
 
 i = 1
 
-
 def GUI(list):
     Boxwurst = []
+    global i
+    i = 1
 
     def addBox(key="", value=""):
         global i
@@ -39,19 +40,21 @@ def GUI(list):
         # print(list)
 
     root = Tk()
+    if len(list) > 0:
+        for key in list:
+            addBox(key, list[key])
+    else:
+        addBox()
 
-    for key in list:
-        addBox(key, list[key])
-
-    #e1 = Entry(root)
-    #e2 = Entry(root)
-    #button = Button(root, text="+", command=addBox)
+    # e1 = Entry(root)
+    # e2 = Entry(root)
+    # button = Button(root, text="+", command=addBox)
     benjamin = Button(root, text="Ausgabe", command=boxen)
-    #e1.grid(column=0, row=1)
-    #e2.grid(column=1, row=1)
-    #button.grid(column=2, row=1)
+    # e1.grid(column=0, row=1)
+    # e2.grid(column=1, row=1)
+    # button.grid(column=2, row=1)
     benjamin.grid(column=0, row=0)
-    #Boxwurst.append((e1, e2))
+    # Boxwurst.append((e1, e2))
 
     root.mainloop()
 
