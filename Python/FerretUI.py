@@ -1,14 +1,18 @@
 from tkinter import *
 
 i = 2
+Boxwurst = []
+icons = {}
 
 
 def addBox():
     global i
     ent = Entry(root)
     ent2 = Entry(root)
+    Boxwurst.append((ent, ent2))
 
     def delBox():
+        Boxwurst.remove((ent, ent2))
         ent.destroy()
         ent2.destroy()
         but.destroy()
@@ -20,16 +24,26 @@ def addBox():
     i = i + 1
 
 
+def boxen():
+    for x in Boxwurst:
+        Boxt0 = x[0].get()
+        Boxt1 = x[1].get()
+        if Boxt0 and Boxt1:
+            # print(Boxt0, Boxt1)
+            icons[Boxt0] = Boxt1
+    print(icons)
+
+
 root = Tk()
-root.geometry("300x400")
 
 e1 = Entry(root)
 e2 = Entry(root)
 button = Button(root, text="+", command=addBox)
-e1.grid(column=0, row=0)
-e2.grid(column=1, row=0)
-button.grid(row=0, column=2)
-e1.insert(END, "default_icon")
-e2.insert(END, "default_aufgabe")
+benjamin = Button(root, text="Ausgabe", command=boxen)
+e1.grid(column=0, row=1)
+e2.grid(column=1, row=1)
+button.grid(column=2, row=1)
+benjamin.grid(column=0, row=0)
+Boxwurst.append((e1, e2))
 
 root.mainloop()
