@@ -7,9 +7,6 @@ from Python import ferret, AddMQTTActionGUI, MQTTToggleGUI, ViewActionGUI
 dropdown = ["Mqtt Action", "Mqtt Toggle", "View Action"]
 
 
-
-
-
 def GUI(key):
     root = Tk()
 
