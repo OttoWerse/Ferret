@@ -33,24 +33,24 @@ def create_tables(db_file):
     :param db_file:
     """
 
-    # View Tabelle
-    sql_create_views_table = """ CREATE TABLE IF NOT EXISTS views (
-                                        id integer PRIMARY KEY,
-                                        name text NOT NULL
-                                    ); """
+
 
     # Deck Tabelle
     sql_create_decks_table = """ CREATE TABLE IF NOT EXISTS decks (
-                                                id integer PRIMARY KEY,
-                                                name text,
-                                                current_view_id integer,
-                                                FOREIGN KEY (current_view_id) REFERENCES views (id)
+                                                seriennummer text PRIMARY KEY,
+                                                name text
                                             ); """
+
+    # View Tabelle
+    sql_create_views_table = """ CREATE TABLE IF NOT EXISTS views (
+                                            id integer PRIMARY KEY,
+                                            name text
+                                        ); """
 
     # Key Tabelle
     sql_create_keys_table = """CREATE TABLE IF NOT EXISTS keys (
-                                    id integer PRIMARY KEY,
-                                    name text NOT NULL,
+                                    id integerPRIMARY KEY,
+                                    name text,
                                     icon_path text,
                                     label text,
                                     view_id integer MOT NULL,
@@ -129,11 +129,8 @@ def create_tables(db_file):
     execute_sql(conn,sql_create_dic_colors_table)
 
 
-if __name__ == "__main__" :
-    create_tables("data.db")
-
-
 def save_view(view):
+
 
     sql_insert_view = f"""INSERT INTO views (name)
                                 VALUES({view.name});  
@@ -141,14 +138,16 @@ def save_view(view):
     execute_sql(sql_insert_view)
 
 
-
     for e in execute_sql("""SELECT MAX(id) from views"""):
         id = e
 
 
-
     for key in view.keys:
-        sql_insert_keys = f"""INSERT INTO keys (name, icon_path, label, view_id)
-                                VALUES({key.name},{key.image},{key.label},{id})
-                                """
-        execute_sql(sql_insert_keys)
+        save_key(key)
+
+
+def save_key(key):
+    sql_insert_keys = f"""INSERT INTO keys (name, icon_path, label, view_id)
+                                    VALUES({key.name},{key.image},{key.label},{id})
+                                    """
+    execute_sql(sql_insert_keys)
