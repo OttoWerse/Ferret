@@ -249,12 +249,15 @@ class MqttAction(Action):
             str = message.payload.decode("utf-8")
             # Determine the StreamDeck hardware the key is currently displayed on
             hardware = self.key.view.deck.hardware
+            print(hardware)
             # Determine the index of the key on the StreamDeck hardware
             index = self.key.view.deck.current_view.keys.index(self.key)
+            print(index)
             # Get Icon, label and color from the dicts
             icon = icons[str]
             label = labels[str]
             color = colors[str]
+            print(icon, label, color)
             # Update the image on the hardware key
             update_key_image(hardware, index, icon, label, color)
             self.set_payload(str)
@@ -331,8 +334,23 @@ if __name__ == "__main__":
     # Create a client
     broker = "192.169.0.203"
     port = 1883
-    client = mqtt.Client("Ferret")
-    client.connect(broker, port)
+
+    clients = []
+
+    client1 = mqtt.Client("Ferret-1")
+    client1.connect(broker, port)
+    clients.append(client1)
+
+    client2 = mqtt.Client("Ferret-2")
+    client2.connect(broker, port)
+    clients.append(client2)
+
+    client3 = mqtt.Client("Ferret-3")
+    client3.connect(broker, port)
+    clients.append(client3)
+
+    pseudoclient = mqtt.Client("pseudo")
+    pseudoclient.connect(broker, port)
 
     # Create Keys
     keys0 = []
@@ -343,7 +361,9 @@ if __name__ == "__main__":
         'mainView': view0
     }
     # Create an MQTT Action
-    topic = 'mqtt-test'
+    topic1 = 'mqtt-test'
+    topic2 = 'mqtt-test-2'
+    topic3 = 'mqtt-test-3'
     payload = 'ping'
     icons = {
         'true': 'repeat.png',
@@ -358,7 +378,11 @@ if __name__ == "__main__":
         'false': '#00ffff',
     }
     # Add a key
-    view0.add_key(1, Key('mainKey', 'test.png', MqttToggle(client, topic, payload, icons, labels, colors)))
+    view0.add_key(1, Key('Key', 'test.png', MqttToggle(client1, topic1, payload, icons, labels, colors)))
+    view0.add_key(2,
+                  Key('Key', 'test.png', MqttToggle(client2, topic2, payload, icons, labels, colors)))
+    view0.add_key(3,
+                  Key('Key', 'test.png', MqttToggle(client3, topic3, payload, icons, labels, colors)))
 
     # Find StreamDeck
     streamdecks = DeviceManager().enumerate()
@@ -372,4 +396,7 @@ if __name__ == "__main__":
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
 
-    client.loop_forever()
+    for client in clients:
+        client.loop_start()
+
+    pseudoclient.loop_forever()
