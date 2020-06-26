@@ -2,6 +2,7 @@ from tkinter import *
 
 i = 1
 
+
 def GUI(list):
     Boxwurst = []
     global i
