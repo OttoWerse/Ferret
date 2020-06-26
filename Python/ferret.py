@@ -249,12 +249,15 @@ class MqttAction(Action):
             str = message.payload.decode("utf-8")
             # Determine the StreamDeck hardware the key is currently displayed on
             hardware = self.key.view.deck.hardware
+            print(hardware)
             # Determine the index of the key on the StreamDeck hardware
             index = self.key.view.deck.current_view.keys.index(self.key)
+            print(index)
             # Get Icon, label and color from the dicts
             icon = icons[str]
             label = labels[str]
             color = colors[str]
+            print(icon, label, color)
             # Update the image on the hardware key
             update_key_image(hardware, index, icon, label, color)
             self.set_payload(str)
@@ -331,8 +334,19 @@ if __name__ == "__main__":
     # Create a client
     broker = "192.169.0.203"
     port = 1883
+
+    clients = []
+
     client = mqtt.Client("Ferret")
     client.connect(broker, port)
+    clients.append(client)
+
+    anotherclient = mqtt.Client("Ferret-213")
+    anotherclient.connect(broker, port)
+    clients.append(anotherclient)
+
+    pseudoclient = mqtt.Client("pseudo")
+    pseudoclient.connect(broker, port)
 
     # Create Keys
     keys0 = []
@@ -344,6 +358,7 @@ if __name__ == "__main__":
     }
     # Create an MQTT Action
     topic = 'mqtt-test'
+    anothertopic = 'mqtt-test-2'
     payload = 'ping'
     icons = {
         'true': 'repeat.png',
@@ -359,6 +374,8 @@ if __name__ == "__main__":
     }
     # Add a key
     view0.add_key(1, Key('mainKey', 'test.png', MqttToggle(client, topic, payload, icons, labels, colors)))
+    view0.add_key(2, Key('anotherKey', 'test.png',
+                         MqttToggle(anotherclient, anothertopic, payload, icons, labels, colors)))
 
     # Find StreamDeck
     streamdecks = DeviceManager().enumerate()
@@ -372,4 +389,7 @@ if __name__ == "__main__":
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
 
-    client.loop_forever()
+    for client in clients:
+        client.loop_start()
+
+    pseudoclient.loop_forever()
