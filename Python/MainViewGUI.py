@@ -20,4 +20,6 @@ variable.set(dropdown[0])
 d1 = OptionMenu(root, variable, *dropdown)
 d1.grid(column=0, row=0)
 
+# Button in Dropdown per if-case
+
 root.mainloop()

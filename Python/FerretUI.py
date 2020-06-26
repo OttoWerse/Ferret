@@ -4,14 +4,12 @@ from tkinter import *
 current_row = 1
 
 
-
 def GUI(list):
     # Fix pythons weirdness with namespaces
     global current_row
     current_row = 1
     # Create a list for tuples of entry fields
     tuples = []
-
 
     def add_row(key="", value=""):
         # Fix pythons weirdness with namespaces
@@ -36,6 +34,7 @@ def GUI(list):
                 key_entry_field.destroy()
                 value_entry_field.destroy()
                 row_button.destroy()
+
             # Assign the function to the button in that row
             row_button = Button(root, text="-", command=delete_row)
         else:
