@@ -12,11 +12,20 @@ def GUI(key):
 
     def egalfunction(args):
         if args == "Mqtt Action":
-            AddMQTTActionGUI.GUI(key.action)
+            if isinstance(key.action, ferret.MqttAction):
+                AddMQTTActionGUI.GUI(key.action)
+            else:
+                AddMQTTActionGUI.GUI()
         elif args == "Mqtt Toggle":
-            MQTTToggleGUI.GUI()
+            if isinstance(key.action, ferret.MqttToggle):
+                MQTTToggleGUI.GUI(key.action)
+            else:
+                MQTTToggleGUI.GUI()
         elif args == "View Action":
-            ViewActionGUI.GUI()
+            if isinstance(key.action, ferret.ViewAction):
+                ViewActionGUI.GUI(key.action)
+            else:
+                ViewActionGUI.GUI()
 
     l1 = Label(root, text="Name")
     l2 = Label(root, text="Label")
@@ -44,6 +53,13 @@ def GUI(key):
 
     d1 = OptionMenu(root, variable, *dropdown, command=egalfunction)
     d1.grid(column=1, row=3)
+
+    if isinstance(key.action, ferret.MqttAction):
+        variable.set(dropdown[0])
+    elif isinstance(key.action, ferret.MqttToggle):
+        variable.set(dropdown[1])
+    elif isinstance(key.action, ferret.ViewAction):
+        variable.set(dropdown[2])
 
     root.mainloop()
 
