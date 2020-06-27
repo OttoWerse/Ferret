@@ -80,7 +80,8 @@ class StreamDeck:
                     if not state:
                         self.current_view.keys[key].action.on_release()
 
-        hardware.set_key_callback(callback)
+        if self.hardware:
+            hardware.set_key_callback(callback)
 
     def switch_view(self, view_name):
         """
