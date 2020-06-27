@@ -42,8 +42,8 @@ def GUI(key):
     e3 = Entry(root)
 
     e1.insert(END, key.name)
-    e2.insert(END, key.image)
-    e3.insert(END, key.label)
+    e2.insert(END, key.label)
+    e3.insert(END, key.image)
 
     e1.grid(column=1, row=0)
     e2.grid(column=1, row=1)

@@ -6,7 +6,7 @@ import StreamDeck
 
 from Python import ferret, AddEditKeyGUI
 
-dropdown = ["Kill", "Me", "Please"]
+dropdown = ["Kill", "Me", "+ neue View hinzufügen"]
 
 root = Tk()
 
@@ -44,7 +44,7 @@ def GUI(view):
             return lambda: AddEditKeyGUI.GUI(key)
 
         b1 = Button(root, image=p1, command=addit(key))
-        b1.grid(column=y, row=x)
+        b1.grid(column=y, row=x, padx=40, pady=30)
         y = y + 1
 
         print(p1.__dict__)
@@ -54,6 +54,7 @@ def GUI(view):
     variable.set(dropdown[0])
 
     d1 = OptionMenu(root, variable, *dropdown)
+    d1.config(width=22)
     d1.grid(column=0, row=0)
 
     # Button in Dropdown per if-case
