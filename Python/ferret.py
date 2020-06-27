@@ -82,6 +82,7 @@ class StreamDeck:
 
         if self.hardware:
             hardware.set_key_callback(callback)
+            print(f'The deck is a {len(hardware.last_key_states)}')
 
     def switch_view(self, view_name):
         """
