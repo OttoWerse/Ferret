@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import paho.mqtt.client as mqtt
 import StreamDeck
 
-from Python import ferret
+from Python import ferret, AddEditKeyGUI
 
 dropdown = ["Kill", "Me", "Please"]
 
@@ -33,15 +33,19 @@ def GUI(view):
             b = 69
 
         if y == b:
-            x = x+1
+            x = x + 1
             y = 0
 
         i1 = Image.open(key.image)
         p1 = ImageTk.PhotoImage(i1)
         images.append(p1)
-        b1 = Button(root, image=p1)
+
+        def addit(key):
+            return lambda: AddEditKeyGUI.GUI(key)
+
+        b1 = Button(root, image=p1, command=addit(key))
         b1.grid(column=y, row=x)
-        y = y+1
+        y = y + 1
 
         print(p1.__dict__)
 
