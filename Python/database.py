@@ -97,7 +97,6 @@ def create_tables(conn, db_file):
     sql_create_view_action_table = """ CREATE TABLE IF NOT EXISTS view_actions (
                                             id integer PRIMARY KEY,
                                             view_name text,
-                                            deck_serial text,
                                             action_id integer NOT NULL,
                                             FOREIGN KEY (deck_serial) REFERENCES decks (serial)
                                             FOREIGN KEY (view_name) REFERENCES views (name),
@@ -211,11 +210,11 @@ def save_view(conn, view, serial):
 
     # Alle Keys von diesem View mit save_key-Methode eintragen
     for key in view.keys:
-        save_key(conn, key, view.name,serial)
+        save_key(conn, key, view.name)
 
 
 # Funktionen zum speichern eines Keys
-def save_key(conn, key, viewName,serial):
+def save_key(conn, key, viewName):
     # Diesen Key eintragen
     sql_insert_key = f"""INSERT INTO keys(name, icon_path, label, view_name) VALUES("{key.name}","{key.image}","{key.label}","{viewName}");"""
     execute_sql(conn, sql_insert_key)
@@ -224,11 +223,11 @@ def save_key(conn, key, viewName,serial):
     id = execute_sql(conn, """SELECT MAX(id) from keys""")[0][0]
 
     # Action vom Key abspeichern
-    save_action(conn, key.action, id,serial)
+    save_action(conn, key.action, id)
 
 
 # Funktionen zum speichern einer Action
-def save_action(conn, action, keyID,serial):
+def save_action(conn, action, keyID):
     name = ""
 
     # Bestimmen was es fuer ein Action ist
@@ -259,9 +258,9 @@ def save_action(conn, action, keyID,serial):
 
 
 # Funktionen zum speichern einer View Action
-def save_view_action(conn, view_action, actionID, serial):
+def save_view_action(conn, view_action, actionID):
     # View Action eintragen
-    sql_insert_view_action = f"""INSERT INTO view_actions (view_name,deck_serial,action_id) VALUES("{view_action.view}","{serial}",{actionID});"""
+    sql_insert_view_action = f"""INSERT INTO view_actions (view_name,action_id) VALUES("{view_action.view}",{actionID});"""
     execute_sql(conn, sql_insert_view_action)
 
 
@@ -330,98 +329,139 @@ def save_colors(conn, color, state, actionID):
 
 # Funktion zum abrufen der Daten zu einem Streamdeck
 def load_deck(streamdeck, db_file):
-
+    # Abrufen der Serial des Decks
     serial = streamdeck.hardware.load_serial_number()
 
+    # Verbindung zur Datenbank erstellen
     conn = create_connection(db_file)
 
+    # Deck aus der Datenbank laden
     sql_select_current_view = f"""SELECT * FROM decks WHERE serial = "{serial}" ;"""
-    current_view = execute_sql(conn, sql_select_current_view)[0][0]
+    deck_db = execute_sql(conn, sql_select_current_view)
 
-    views = load_views(conn, serial)
+    # initialisiren des decks
+    deck = ferret.StreamDeck(streamdeck, {}, "")
 
-    return ferret.StreamDeck(streamdeck, views, current_view)
+    # Ueberpruefen ob das Deck in der Datenbank existiert
+    if (current_view):
+        # Derzeitige View aus deck nehmen
+        current_view = deck_db[0][0]
+
+        # Views vom deck laden mit Funktionsaufruf
+        views = load_views(conn, deck, serial)
+
+        # Deck mit neuen Daten ueberschreiben
+        deck.views = views
+        deck.current_view = current_view
+
+        # Deck Objekt zurueck liefern
+        return deck
+    else:
+        return deck
 
 
 # Funktion zum abrufen der Views von einem Deck
-def load_views(conn, serial):
+def load_views(conn, deck, serial):
+    # Views aus Datenbank laden
     sql_select_views = f"""SELECT * FROM views WHERE deck_serial = "{serial}" ;"""
     selected_views = execute_sql(conn, sql_select_views)
 
+    # Views Objekt initialisieren
     views = {}
 
+    # Ueberpruefen ob Views in der Datenbank existieren
     if (selected_views):
+
+        # Views objekt mit daten aus der Datenbank befuellen und Funktionsaufruf um die Keys zu laden
         for view in selected_views:
             view_name = view[0]
-            keys = load_keys(conn, view_name)
+            keys = load_keys(conn, deck, view_name)
             views[view_name] = ferret.View(view_name, keys)
+
+        # Views zurueck liefern
         return views
 
+    # Leeres Views zurueck liefern
     else:
         return views
 
 
 # Funktion zum abrufen der Keys eines Views
-def load_keys(conn, viewn_name):
+def load_keys(conn, deck, viewn_name):
+    # Keys aus Datenbank laden
     sql_select_keys = f"""SELECT * FROM keys WHERE view_name = "{viewn_name}" ;"""
     selected_keys = execute_sql(conn, sql_select_keys)
 
+    # Keys Objekt initialisieren
     keys = []
     position = 0
 
+    # Ueberpruefen ob Keys in der Datenbank existieren
     if (selected_keys):
+
+        # Keys objekt mit daten aus der Datenbank befuellen und Funktionsaufruf um die Actionen zu laden
         for key in selected_keys:
             key_name = key[1]
             key_icon = key[2]
-            key_action = load_action(conn, key[0])
+            key_action = load_action(conn, deck, key[0])
             key_label = key[3]
             keys[position] = ferret.Key(key_name, key_icon, key_action, key_label)
             position += 1
 
         return keys
 
+    # Leeres Keys zurueck liefern
     else:
         return keys
 
 
-
 # Funktion zum abrufen einer Action eines Keys
-def load_action(conn, key_id):
+def load_action(conn, deck, key_id):
+    # Alle Actions aus der Datenbank abrufen
     sql_select_action = f"""SELECT * FROM actions WHERE key_id = {key_id} ;"""
     selected_action = execute_sql(conn, sql_select_action)
 
+    # Action_id abrufen zum zwischen speichern
     action_id = selected_action[0]
 
+    # Bestimmen was fuer eine Action es ist und je nach dem die richtige Funktion aufrufen
     if (selected_action[1] == "MQTT_Action"):
         return load_mqtt_action(conn, action_id)
     elif (selected_action[1] == "MQTT_Toggle"):
         return load_mqtt_toggle(conn, action_id)
     elif (selected_action[1] == "View_Action"):
-        return load_view_action(conn, action_id)
+        return load_view_action(conn, deck, action_id)
+
+    # Sonst einfaches Action Objekt zurueck liefern
     else:
         return ferret.Action()
 
 
 # Funktion zum abrufen einer MQTT Action eines Keys
 def load_mqtt_action(conn, action_id):
+    # MQTT Action aus Datenbank abrufen
     sql_select_mqtt_action = f"""SELECT * FROM mqtt_actions WHERE action_id = {action_id} ;"""
     selected_mqtt_action = execute_sql(conn, sql_select_mqtt_action)
 
-    client = load_client(conn,action_id)
+    # Attribute bestrimmen mit Daten aus Datenbank oder Funktionsaufruf um sie abzufragen
+    client = load_client(conn, action_id)
     topic = selected_mqtt_action[0][2]
     payload = selected_mqtt_action[0][3]
-    icons = load_icons(conn,action_id)
-    labels = load_labels(conn,action_id)
-    colors = load_colors(conn,action_id)
+    icons = load_icons(conn, action_id)
+    labels = load_labels(conn, action_id)
+    colors = load_colors(conn, action_id)
 
-    return ferret.MqttAction(client,topic,payload,icons,labels,colors)
+    # MqttAction Objekt zurueck liefern
+    return ferret.MqttAction(client, topic, payload, icons, labels, colors)
 
 
 # Funktion zum abrufen eines MQTT Toggles eines Keys
 def load_mqtt_toggle(conn, action_id):
+    # MQTT Action aus Datenbank abrufen
     sql_select_mqtt_toggle = f"""SELECT * FROM mqtt_toggles WHERE action_id = {action_id} ;"""
     selected_mqtt_toggle = execute_sql(conn, sql_select_mqtt_toggle)
 
+    # Attribute bestrimmen mit Daten aus Datenbank oder Funktionsaufruf um sie abzufragen
     client = load_client(conn, action_id)
     topic = selected_mqtt_toggle[0][2]
     payload = selected_mqtt_toggle[0][3]
@@ -429,86 +469,86 @@ def load_mqtt_toggle(conn, action_id):
     labels = load_labels(conn, action_id)
     colors = load_colors(conn, action_id)
 
+    # MQTT Toggle Objekt zurueck liefern
     return ferret.MqttToggle(client, topic, payload, icons, labels, colors)
 
 
 # Funktion zum abrufen einer View Action eines Keys
-def load_view_action(conn, action_id):
-    sql_select_view_action = f"""SELECT * FROM view_action WHERE action_id = {action_id} ;"""
+def load_view_action(conn, deck, action_id):
+    # Abrufen der View zu der gewaechselt wird aus der Datenbank
+    sql_select_view_action = f"""SELECT view_name FROM view_action WHERE action_id = {action_id} ;"""
     selected_view_action = execute_sql(conn, sql_select_view_action)
 
+    # View name zwischenspeichern
+    view_name = selected_view_action[0]
 
-#Funktion zum abrufen von Clients einer MQTT Action / Toggles
-def load_client(conn,action_id):
+    # View Action Objekt zurueck liefern
+    return ferret.ViewAction(deck, view_name)
+
+
+# Funktion zum abrufen von Clients einer MQTT Action / Toggles
+def load_client(conn, action_id):
+    # Client abrufen von der Action aus der Datenbank
     sql_select_clients = f"""SELECT * FROM mqtt_clients WHERE action_id = {action_id} ;"""
     selected_client = execute_sql(conn, sql_select_clients)[0]
 
-
+    # Client erstellen und initialisieren
     client = mqtt.Client(selected_client[1])
     client.connect(selected_client[2], selected_client[3])
 
+    # Client zurueck liefern
     return client
 
-#Funktion zum abrufen von Icons einer MQTT Action / Toggles
+
+# Funktion zum abrufen von Icons einer MQTT Action / Toggles
 def load_icons(conn, action_id):
+    # Alle Icons einer Action aus der Datenbank abrufen
     sql_select_icons = f"""SELECT * FROM dic_icons WHERE action_id = {action_id} ;"""
     selected_icons = execute_sql(conn, sql_select_icons)
 
+    # Icons leer initialieren
     icons = {}
 
-    if(selected_icons):
+    # Wenn Icons in der Datenbank existieren diese in Icons legen
+    if (selected_icons):
         for icon in selected_icons:
             icons[icon[2]] = icon[1]
 
-
+    # Icons Dictionary zurueck liefern
     return icons
 
 
 # Funktion zum abrufen von Labels einer MQTT Action / Toggles
 def load_labels(conn, action_id):
+    # Alle Labels einer Action aus der Datenbank abrufen
     sql_select_labels = f"""SELECT * FROM dic_labels WHERE action_id = {action_id} ;"""
-    selected_labels= execute_sql(conn, sql_select_labels)
+    selected_labels = execute_sql(conn, sql_select_labels)
 
+    # Labels leer initialieren
     labels = {}
 
+    # Wenn Labels in der Datenbank existieren diese in Labels legen
     if (selected_labels):
         for label in selected_labels:
             labels[label[2]] = label[1]
 
-    return labels
-
-# Funktion zum abrufen von Labels einer MQTT Action / Toggles
-def load_labels(conn, action_id):
-    sql_select_labels = f"""SELECT * FROM dic_labels WHERE action_id = {action_id} ;"""
-    selected_labels= execute_sql(conn, sql_select_labels)
-
-    labels = {}
-
-    if (selected_labels):
-        for label in selected_labels:
-            labels[label[2]] = label[1]
-
+    # Labels Dictionary zurueck liefern
     return labels
 
 
 # Funktion zum abrufen von colors einer MQTT Action / Toggles
 def load_colors(conn, action_id):
+    # Alle Colors einer Action aus der Datenbank abrufen
     sql_select_colors = f"""SELECT * FROM dic_colors WHERE action_id = {action_id} ;"""
-    selected_colors= execute_sql(conn, sql_select_colors)
+    selected_colors = execute_sql(conn, sql_select_colors)
 
+    # Colors leer initialieren
     colors = {}
 
+    # Wenn Colors in der Datenbank existieren diese in Colors legen
     if (selected_colors):
         for color in selected_colors:
             colors[color[2]] = color[1]
 
+    # Colors Dictionary zurueck liefern
     return colors
-
-
-if __name__ == "__main__":
-    os.remove("data.db")
-    conn = create_connection("data.db")
-
-    serial = "AL40I2C01100"
-
-    print(load_colors(conn,2))
