@@ -6,6 +6,8 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 
 # Set the path for finding assets
+from Python.database import save_deck
+
 ASSETS_PATH = os.path.join(os.path.dirname(os.getcwd()), "Assets")
 
 
@@ -396,6 +398,7 @@ if __name__ == "__main__":
 
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
+        save_deck(deck,"123qwe","data.db")
 
     for client in clients:
         client.loop_start()
