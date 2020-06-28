@@ -148,3 +148,4 @@ if __name__ == "__main__":
     views = {"beastieboy": view, "irgendein name": view1}
     deck = ferret.StreamDeck(None, views, view)
     GUI(deck)
+    print("Hurensohn")
