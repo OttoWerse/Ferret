@@ -6,6 +6,7 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 
 # Set the path for finding assets
+from Python import MainViewGUI
 
 ASSETS_PATH = os.path.join(os.path.dirname(os.getcwd()), "Assets")
 
@@ -47,6 +48,8 @@ def update_key_image(deck, key, icon, label, fill):
     # Update requested key with the generated image.
     deck.set_key_image(key, image)
 
+    return image
+
 
 class StreamDeck:
     """
@@ -83,7 +86,6 @@ class StreamDeck:
 
         if self.hardware:
             hardware.set_key_callback(callback)
-            print(f'The deck is a {len(hardware.last_key_states)}')
 
     def switch_view(self, view_name):
         """
@@ -177,6 +179,9 @@ class Key:
         self.action.key = self
         self.label = label
 
+    def setImage(self, image):
+        self.image = os.path.join(ASSETS_PATH, image)
+
 
 class Action:
     """
@@ -252,18 +257,18 @@ class MqttAction(Action):
             str = message.payload.decode("utf-8")
             # Determine the StreamDeck hardware the key is currently displayed on
             hardware = self.key.view.deck.hardware
-            print(hardware)
             # Determine the index of the key on the StreamDeck hardware
             index = self.key.view.deck.current_view.keys.index(self.key)
-            print(index)
             # Get Icon, label and color from the dicts
             icon = icons[str]
             label = labels[str]
             color = colors[str]
-            print(icon, label, color)
             # Update the image on the hardware key
+            self.key.setImage(icon)
             update_key_image(hardware, index, icon, label, color)
             self.set_payload(str)
+            if self.key.view.deck:
+                MainViewGUI.update(self.key.view.deck)
 
         # Assigning the function to the MQTT client
         self.client.on_message = on_message
@@ -289,13 +294,10 @@ class MqttToggle(MqttAction):
         MqttAction.__init__(self, client, topic, payload, icons, labels, colors)
 
     def get_payload(self):
-        print(f'GET {self.payload}')
         self.payload = not self.payload
-        print(f'NOW {self.payload}')
         return self.payload
 
     def set_payload(self, payload):
-        print(f'SET {payload}')
         if payload.lower() == 'true':
             self.payload = True
         elif payload.lower() == 'false':
@@ -331,75 +333,3 @@ class ViewAction(Action):
 
         # Assign the function to the attribute of the same name
         self.on_release = on_release
-
-
-if __name__ == "__main__":
-    # Create a client
-    broker = "192.169.0.203"
-    port = 1883
-
-    clients = []
-
-    client1 = mqtt.Client("KFerret-1")
-    client1.connect(broker, port)
-    clients.append(client1)
-
-    client2 = mqtt.Client("KFerret-2")
-    client2.connect(broker, port)
-    clients.append(client2)
-
-    client3 = mqtt.Client("KFerret-3")
-    client3.connect(broker, port)
-    clients.append(client3)
-
-    pseudoclient = mqtt.Client("Kpseudo")
-    pseudoclient.connect(broker, port)
-
-    # Create Keys
-    keys0 = []
-    # Create a View
-    view0 = View('mainView', keys0)
-    # Create Views
-    views = {
-        'mainView': view0
-    }
-    # Create an MQTT Action
-    topic1 = 'mqtt-test'
-    topic2 = 'mqtt-test-2'
-    topic3 = 'mqtt-test-3'
-    payload = 'ping'
-    icons = {
-        'true': 'repeat.png',
-        'false': 'repeat-off.png',
-    }
-    labels = {
-        'true': 'An',
-        'false': 'Aus',
-    }
-    colors = {
-        'true': '#ff00ff',
-        'false': '#00ffff',
-    }
-    # Add a key
-    view0.add_key(1, Key('Key', 'test.png', MqttToggle(client1, topic1, payload, icons, labels, colors)))
-    view0.add_key(2,
-                  Key('Key', 'test.png', MqttToggle(client2, topic2, payload, icons, labels, colors)))
-    view0.add_key(3,
-                  Key('Key', 'test.png', MqttToggle(client3, topic3, payload, icons, labels, colors)))
-
-    # Find StreamDeck
-    streamdecks = DeviceManager().enumerate()
-    print("Found {} Stream Deck(s).\n".format(len(streamdecks)))
-
-    for index, streamdeck in enumerate(streamdecks):
-        streamdeck.open()
-        streamdeck.reset()
-        print("Opened '{}' device (serial number: '{}')".format(streamdeck.deck_type(), streamdeck.get_serial_number()))
-
-        # Create a Stream Deck
-        deck = StreamDeck(streamdeck, views, views.get('mainView'))
-
-    for client in clients:
-        client.loop_start()
-
-    pseudoclient.loop_forever()

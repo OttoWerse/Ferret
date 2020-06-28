@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import simpledialog
 from tkinter.ttk import *
 from PIL import Image, ImageTk
 import paho.mqtt.client as mqtt
@@ -6,31 +7,84 @@ import StreamDeck
 
 from Python import ferret, AddEditKeyGUI
 
-dropdown = ["Kill", "Me", "+ neue View hinzufügen"]
-
 root = Tk()
+images = []
+buttons = []
+variable = None
+d1 = None
+h, b = 0, 0
 
 
-def GUI(view):
+def GUI(deck):
+    global images, buttons, variable, d1, h, b
+
+    gdeck = deck
+
+    if isinstance(deck, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
+        h = 2
+        b = 3
+    elif isinstance(deck, StreamDeck.Devices.StreamDeckOriginal.StreamDeckOriginal):
+        h = 3
+        b = 5
+    elif isinstance(deck, StreamDeck.Devices.StreamDeckOriginalV2.StreamDeckOriginalV2):
+        h = 3
+        b = 5
+    elif isinstance(deck, StreamDeck.Devices.StreamDeckXL.StreamDeckXL):
+        h = 4
+        b = 8
+    else:
+        h = 3
+        b = 5
+
+    def dialog():
+        answer = simpledialog.askstring("Input", "Benenne deine View",
+                                        parent=root)
+        if answer is not None:
+            deck.views[answer] = ferret.View(name=answer, keys=[])
+            update(deck)
+        else:
+            print("Also kein Name")
+
+    def edview():
+        kays = [
+            ferret.Key(name1, image, action, label),
+            ferret.Key(name1, "repeat-off.png", action, label),
+            ferret.Key(name1, image, action, label),
+        ]
+        deck.views["test"] = ferret.View(name="Probe", keys=kays)
+        deck.current_view = deck.views["test"]
+        update()
+
+    # Dropdown Menu
+    variable = StringVar(root)
+    variable.set(deck.current_view.name)
+    d1 = OptionMenu(root, variable, command=DD)
+    d1.config(width=22)
+    d1.grid(column=0, row=0, columnspan=b - 1, sticky=W)
+
+    b2 = Button(root, command=dialog)
+    b2.grid(column=b - 1, row=0)
+
+    update(deck)
+
+    # Button in Dropdown per if-case
+
+    root.mainloop()
+
+
+def DD(args):
+    deck.current_view = deck.views[args]
+    variable.set(args)
+    update()
+
+
+def update(deck):
+    view = deck.current_view
     x = 1
     y = 0
-    images = []
+    for button in buttons:
+        button.destroy()
     for key in view.keys:
-        if isinstance(key.view.deck, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
-            h = 2
-            b = 3
-        elif isinstance(key.view.deck, StreamDeck.Devices.StreamDeckOriginal.StreamDeckOriginal):
-            h = 3
-            b = 5
-        elif isinstance(key.view.deck, StreamDeck.Devices.StreamDeckOriginalV2.StreamDeckOriginalV2):
-            h = 3
-            b = 5
-        elif isinstance(key.view.deck, StreamDeck.Devices.StreamDeckXL.StreamDeckXL):
-            h = 4
-            b = 8
-        else:
-            h = 420
-            b = 69
 
         if y == b:
             x = x + 1
@@ -44,22 +98,15 @@ def GUI(view):
             return lambda: AddEditKeyGUI.GUI(key)
 
         b1 = Button(root, image=p1, command=addit(key))
-        b1.grid(column=y, row=x, padx=40, pady=30)
+        b1.grid(column=y, row=x)
+
+        buttons.append(b1)
         y = y + 1
 
-        print(p1.__dict__)
-
-    # Dropdown Menu
-    variable = StringVar(root)
-    variable.set(dropdown[0])
-
-    d1 = OptionMenu(root, variable, *dropdown)
-    d1.config(width=22)
-    d1.grid(column=0, row=0)
-
-    # Button in Dropdown per if-case
-
-    root.mainloop()
+    d1["menu"].delete(0, "end")
+    for something in deck.views:
+        print(something)
+        d1["menu"].add_command(label=something, command=lambda selection=something: DD(selection))
 
 
 if __name__ == "__main__":
@@ -97,7 +144,16 @@ if __name__ == "__main__":
         ferret.Key(name1, image, action, label),
         ferret.Key(name1, image, action, label),
     ]
+
+    keys1 = [
+        ferret.Key(name1, image, action, label),
+        ferret.Key(name1, image, action, label),
+        ferret.Key(name1, image, action, label),
+        ferret.Key(name1, "repeat-off.png", action, label),
+    ]
     view = ferret.View(name, keys)
-    views = {"dicktionary": view}
+    view1 = ferret.View("irgendein name", keys1)
+    views = {"beastieboy": view, "irgendein name": view1}
     deck = ferret.StreamDeck(None, views, view)
-    GUI(view)
+    GUI(deck)
+    print("Hurensohn")
