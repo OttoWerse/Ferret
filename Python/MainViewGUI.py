@@ -8,11 +8,17 @@ import StreamDeck
 from Python import ferret, AddEditKeyGUI
 
 root = Tk()
+images = []
+buttons = []
+variable = None
+d1 = None
+h, b = 0, 0
 
 
 def GUI(deck):
-    images = []
-    buttons = []
+    global images, buttons, variable, d1, h, b
+
+    gdeck = deck
 
     if isinstance(deck, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
         h = 2
@@ -30,47 +36,12 @@ def GUI(deck):
         h = 3
         b = 5
 
-    def update():
-        view = deck.current_view
-        x = 1
-        y = 0
-        for button in buttons:
-            button.destroy()
-        for key in view.keys:
-
-            if y == b:
-                x = x + 1
-                y = 0
-
-            i1 = Image.open(key.image)
-            p1 = ImageTk.PhotoImage(i1)
-            images.append(p1)
-
-            def addit(key):
-                return lambda: AddEditKeyGUI.GUI(key)
-
-            b1 = Button(root, image=p1, command=addit(key))
-            b1.grid(column=y, row=x)
-
-            buttons.append(b1)
-            y = y + 1
-
-        d1["menu"].delete(0, "end")
-        for something in deck.views:
-            print(something)
-            d1["menu"].add_command(label=something, command=lambda selection=something: DD(selection))
-
-    def DD(args):
-        deck.current_view = deck.views[args]
-        variable.set(args)
-        update()
-
     def dialog():
         answer = simpledialog.askstring("Input", "Benenne deine View",
                                         parent=root)
         if answer is not None:
             deck.views[answer] = ferret.View(name=answer, keys=[])
-            update()
+            update(deck)
         else:
             print("Also kein Name")
 
@@ -94,11 +65,48 @@ def GUI(deck):
     b2 = Button(root, command=dialog)
     b2.grid(column=b - 1, row=0)
 
-    update()
+    update(deck)
 
     # Button in Dropdown per if-case
 
     root.mainloop()
+
+
+def DD(args):
+    deck.current_view = deck.views[args]
+    variable.set(args)
+    update()
+
+
+def update(deck):
+    view = deck.current_view
+    x = 1
+    y = 0
+    for button in buttons:
+        button.destroy()
+    for key in view.keys:
+
+        if y == b:
+            x = x + 1
+            y = 0
+
+        i1 = Image.open(key.image)
+        p1 = ImageTk.PhotoImage(i1)
+        images.append(p1)
+
+        def addit(key):
+            return lambda: AddEditKeyGUI.GUI(key)
+
+        b1 = Button(root, image=p1, command=addit(key))
+        b1.grid(column=y, row=x)
+
+        buttons.append(b1)
+        y = y + 1
+
+    d1["menu"].delete(0, "end")
+    for something in deck.views:
+        print(something)
+        d1["menu"].add_command(label=something, command=lambda selection=something: DD(selection))
 
 
 if __name__ == "__main__":

@@ -50,7 +50,7 @@ def GUI(action=None):
 
 
     def save():
-        action.client = mqtt.Client("Ferret-1")
+        action.client = action.client
         action.topic = e1.get()
         action.payload = e2.get()
 
