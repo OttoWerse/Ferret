@@ -6,7 +6,6 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 
 # Set the path for finding assets
-from Python.database import save_deck
 
 ASSETS_PATH = os.path.join(os.path.dirname(os.getcwd()), "Assets")
 
@@ -341,19 +340,19 @@ if __name__ == "__main__":
 
     clients = []
 
-    client1 = mqtt.Client("Ferret-1")
+    client1 = mqtt.Client("KFerret-1")
     client1.connect(broker, port)
     clients.append(client1)
 
-    client2 = mqtt.Client("Ferret-2")
+    client2 = mqtt.Client("KFerret-2")
     client2.connect(broker, port)
     clients.append(client2)
 
-    client3 = mqtt.Client("Ferret-3")
+    client3 = mqtt.Client("KFerret-3")
     client3.connect(broker, port)
     clients.append(client3)
 
-    pseudoclient = mqtt.Client("pseudo")
+    pseudoclient = mqtt.Client("Kpseudo")
     pseudoclient.connect(broker, port)
 
     # Create Keys
@@ -399,7 +398,6 @@ if __name__ == "__main__":
 
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
-        save_deck(deck,"123qwe","data.db")
 
     for client in clients:
         client.loop_start()
