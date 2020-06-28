@@ -55,12 +55,14 @@ def GUI(key):
     d1 = OptionMenu(root, variable, *dropdown, command=egalfunction)
     d1.grid(column=1, row=3)
 
-    if isinstance(key.action, ferret.MqttAction):
-        variable.set(dropdown[0])
-    elif isinstance(key.action, ferret.MqttToggle):
+    if isinstance(action, ferret.MqttToggle):
         variable.set(dropdown[1])
-    elif isinstance(key.action, ferret.ViewAction):
+    elif isinstance(action, ferret.MqttAction):
+        variable.set(dropdown[0])
+    elif isinstance(action, ferret.ViewAction):
         variable.set(dropdown[2])
+    else:
+        print(type(action))
 
     def save():
         key.name = e1.get()
