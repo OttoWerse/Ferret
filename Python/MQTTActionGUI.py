@@ -44,5 +44,6 @@ benjamin.pack()
 beavis.pack()
 buttonhead.pack()
 labeldor.pack()
+labcoat.pack()
 
 root.mainloop()

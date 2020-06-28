@@ -3,3 +3,4 @@
 # Dependencies
 - StreamDeck.py
 - MQTT
+- yes

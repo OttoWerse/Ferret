@@ -8,29 +8,14 @@ from Python import ferret, FerretUI
 def GUI(action=None):
     root = Tk()
 
-    if action:
-        client = action.client
-        topic = action.topic
-        payload = action.payload
-        icons = action.icons
-        colors = action.colors
-        labels = action.labels
-    else:
-        client = None
-        topic = ""
-        payload = ""
-        icons = {}
-        colors = {}
-        labels = {}
-
     def setIcons():
-        FerretUI.GUI(icons)
+        FerretUI.GUI(action.icons)
 
     def setColors():
-        FerretUI.GUI(colors)
+        FerretUI.GUI(action.colors)
 
     def setLabels():
-        FerretUI.GUI(labels)
+        FerretUI.GUI(action.labels)
 
     # 5 Labels
     l1 = Label(root, text="Topic")
@@ -57,21 +42,17 @@ def GUI(action=None):
     # 2 Entries
     e1 = Entry(root)
     e2 = Entry(root)
-    e1.insert(END, topic)
-    e2.insert(END, payload)
+    e1.insert(END, action.topic)
+    e2.insert(END, action.payload)
 
     e1.grid(column=3, row=0)
     e2.grid(column=3, row=1)
 
+
     def save():
-        global action
-        client = mqtt.Client("Ferret-1")
-        topic = e1.get()
-        payload = e2.get()
-
-        action = ferret.MqttAction(client, topic, payload, icons, labels, colors)
-
-        print(action)
+        action.client = mqtt.Client("Ferret-1")
+        action.topic = e1.get()
+        action.payload = e2.get()
 
         root.destroy()
 

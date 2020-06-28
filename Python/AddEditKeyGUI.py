@@ -9,21 +9,22 @@ dropdown = ["Mqtt Action", "Mqtt Toggle", "View Action"]
 
 def GUI(key):
     root = Tk()
+    action = key.action
 
     def egalfunction(args):
         if args == "Mqtt Action":
             if isinstance(key.action, ferret.MqttAction):
-                AddMQTTActionGUI.GUI(key.action)
+                AddMQTTActionGUI.GUI(action)
             else:
                 AddMQTTActionGUI.GUI()
         elif args == "Mqtt Toggle":
             if isinstance(key.action, ferret.MqttToggle):
-                MQTTToggleGUI.GUI(key.action)
+                MQTTToggleGUI.GUI(action)
             else:
                 MQTTToggleGUI.GUI()
         elif args == "View Action":
             if isinstance(key.action, ferret.ViewAction):
-                ViewActionGUI.GUI(key.action)
+                ViewActionGUI.GUI(action)
             else:
                 ViewActionGUI.GUI()
 
@@ -42,8 +43,8 @@ def GUI(key):
     e3 = Entry(root)
 
     e1.insert(END, key.name)
-    e2.insert(END, key.image)
-    e3.insert(END, key.label)
+    e2.insert(END, key.label)
+    e3.insert(END, key.image)
 
     e1.grid(column=1, row=0)
     e2.grid(column=1, row=1)
@@ -60,6 +61,15 @@ def GUI(key):
         variable.set(dropdown[1])
     elif isinstance(key.action, ferret.ViewAction):
         variable.set(dropdown[2])
+
+    def save():
+        key.name = e1.get()
+        key.label = e2.get()
+        key.image = e3.get()
+
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", save)
 
     root.mainloop()
 
