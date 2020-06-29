@@ -6,6 +6,7 @@ import paho.mqtt.client as mqtt
 from StreamDeck.Devices import StreamDeckMini, StreamDeckOriginal, StreamDeckOriginalV2, StreamDeckXL
 
 from Python.logic import ferret
+from Python.logic.ferret import StreamDeck
 from Python.ui import key_ui
 
 root = Tk()
@@ -97,52 +98,3 @@ def update(deck):
         print(something)
         d1["menu"].add_command(label=something, command=lambda deck=deck, selection=something: DD(deck, selection))
 
-
-if __name__ == "__main__":
-    name = "beastieboy"
-    name1 = "keyny loggins"
-    image = "repeat.png"
-    broker = "192.169.0.203"
-    port = 1883
-
-    client1 = mqtt.Client("Ferret-1")
-    # client1.connect(broker, port)
-
-    topic1 = 'mqtt-test'
-    payload = 'ping'
-    icons = {
-        'true': 'repeat.png',
-        'false': 'repeat-off.png',
-    }
-    labels = {
-        'true': 'An',
-        'false': 'Aus',
-    }
-    colors = {
-        'true': '#ff00ff',
-        'false': '#00ffff',
-    }
-
-    label = "labell delphine"
-    action = ferret.MqttAction(topic1, payload, icons, labels, colors)
-    keys = [
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, "repeat-off.png", action, label),
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, image, action, label),
-    ]
-
-    keys1 = [
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, image, action, label),
-        ferret.Key(name1, "repeat-off.png", action, label),
-    ]
-    view = ferret.View(name, keys)
-    view1 = ferret.View("irgendein name", keys1)
-    views = {"beastieboy": view, "irgendein name": view1}
-    deck = ferret.StreamDeck(None, views, view)
-    GUI(deck)
-    print("Hurensohn")
