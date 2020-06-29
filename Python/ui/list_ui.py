@@ -1,7 +1,7 @@
 from tkinter import *
 
 # Initialize row counter
-current_row = 1
+current_row = 0
 
 
 def GUI(list):
@@ -46,7 +46,7 @@ def GUI(list):
         # Increase the row counter
         current_row = current_row + 1
 
-    def build_dict():
+    def save():
         # Clear the list (in order to sync deletions)
         list.clear()
         # Iterate through all tuples
@@ -58,6 +58,7 @@ def GUI(list):
             if key and value:
                 # add an entry to the dict
                 list[key] = value
+        root.destroy()
 
     # Initialise Tk
     root = Tk()
@@ -71,14 +72,7 @@ def GUI(list):
         # Add a single, empty, row
         add_row()
 
-    # Add a button to safe the current rows
-    commit_button = Button(root, text="Ausgabe", command=build_dict)
-    commit_button.grid(column=0, row=0)
+    root.protocol("WM_DELETE_WINDOW", save)
 
     # Start the Tk loop
     root.mainloop()
-
-
-if __name__ == "__main__":
-    # A small test case
-    GUI({"hello": "world"})
