@@ -47,8 +47,6 @@ def GUI(action=None):
         action.client = action.client
         action.topic = e1.get()
 
-        print(action.icons)
-
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", save)

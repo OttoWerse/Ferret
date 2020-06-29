@@ -1,12 +1,14 @@
+import logging
+import Python.db.database as db
 from tkinter import *
 from tkinter import simpledialog
 from tkinter.ttk import *
 from PIL import Image, ImageTk
-import paho.mqtt.client as mqtt
 from StreamDeck.Devices import StreamDeckMini, StreamDeckOriginal, StreamDeckOriginalV2, StreamDeckXL
-
 from Python.logic import ferret
 from Python.ui import key_ui
+
+logging.basicConfig(level=logging.INFO)
 
 root = Tk()
 images = []
@@ -42,7 +44,7 @@ def GUI(deck):
             deck.add_view(ferret.View(name=answer))
             update(deck)
         else:
-            print("Also kein Name")
+            logging.info("Name is missing!")
 
     # Dropdown Menu
     variable = StringVar(root)
@@ -92,8 +94,11 @@ def update(deck):
         buttons.append(b1)
         y = y + 1
 
+        #Save current data in database
+        db.update_data(deck,ferret.db_file)
+
+
     d1["menu"].delete(0, "end")
     for something in deck.views:
-        print(something)
         d1["menu"].add_command(label=something, command=lambda deck=deck, selection=something: DD(deck, selection))
 

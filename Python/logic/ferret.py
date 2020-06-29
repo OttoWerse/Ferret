@@ -1,15 +1,20 @@
+import logging
 import os
-
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.ImageHelpers import PILHelper
 import paho.mqtt.client as mqtt
 from Python.ui import deck_ui
 
+logging.basicConfig(level=logging.INFO)
+
 # Set the path for finding assets
 ASSETS_PATH = os.path.join(os.path.dirname(os.getcwd()), "Assets")
 
+# Declare DB File
+db_file = "data.db"
 current_id = 0
 clients = []
+
 
 # Generates a custom tile with run-time generated text and custom image via the
 # PIL module.
@@ -96,7 +101,7 @@ class StreamDeck:
         # Delete the reverse reference to the deck inside the no longer current view
         self.current_view.deck = None
         # Assign a new current view
-        print(f'the name is {view_name}, so the view should be: {self.views[view_name]}')
+        logging.info(f'the name is {view_name}, so the view should be: {self.views[view_name]}')
         self.current_view = self.views[view_name]
         # Add a reverse reference to this deck to the new current view
         self.current_view.deck = self
@@ -109,20 +114,16 @@ class StreamDeck:
         # add the view to the dict
         # TODO: Error handling (view names need to be unique)
 
-        print(self.hardware.__dict__)
+        logging.info(f'current hardware: {self.hardware.__dict__}')
 
         sw_size = len(view.keys)
         hw_size = len(self.hardware.last_key_states)
 
         if sw_size < hw_size:
-            print("---bigness not so big---")
             keys = view.keys
             for index in range(hw_size - sw_size):
-                print("SIZE", index + sw_size)
                 action = Action()
-                print(action)
                 view.add_key(index + sw_size, Key(action=action))
-                print(f'ACTION: {keys[index + sw_size].action}')
 
         self.views[view.name] = view
 
@@ -201,18 +202,14 @@ class Action:
         self.on_release = on_release
         self.id = i
         i = i + 1
-        print(f'I is now: {i}')
 
     def update(self):
-        print(self.id)
-
         # Determine the StreamDeck hardware the key is currently displayed on
         hardware = self.key.view.deck.hardware
         # Determine the index of the key on the StreamDeck hardware
         index = self.key.view.deck.current_view.keys.index(self.key)
         # Get Icon, label and color from the dicts
         icon = self.key.image
-        print(icon)
         label = self.key.label
         color = "#ffffff"
         # Update the image on the hardware key
@@ -249,10 +246,9 @@ class MqttAction(Action):
         current_id = current_id + 1
         broker = "192.169.0.203"
         port = 1883
-        client = mqtt.Client(f'Ferret-{current_id}')
-        client.connect(broker, port)
-        clients.append(client)
-        self.client = client
+        self.client = mqtt.Client(f'Ferret-{current_id}')
+        self.client.connect(broker, port)
+        clients.append(self.client)
         self.topic = topic
         self.payload = payload
         self.icons = icons
@@ -262,6 +258,7 @@ class MqttAction(Action):
 
         # Subscribing to the given topics "out" channel (convention)
         self.client.subscribe(self.topic + '/out')
+        self.client.loop_start()
 
         # Create a function to be executed on press (this might be used in the future)
         def on_press():
@@ -285,7 +282,6 @@ class MqttAction(Action):
             str = message.payload.decode("utf-8")
             self.last_message = str
             self.update()
-            self.set_payload(str)
 
         # Assigning the function to the MQTT client
         self.client.on_message = on_message
@@ -394,6 +390,10 @@ class Key:
 
     def setImage(self, image):
         self.image = os.path.join(ASSETS_PATH, image)
+
+    def set_action(self, action):
+        self.action = action
+        self.action.key = self
 
     def update(self):
         self.action.update()

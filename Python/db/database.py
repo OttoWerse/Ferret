@@ -96,7 +96,6 @@ def create_tables(conn):
                                             id integer PRIMARY KEY,
                                             view_name text,
                                             action_id integer NOT NULL,
-                                            FOREIGN KEY (deck_serial) REFERENCES decks (serial)
                                             FOREIGN KEY (view_name) REFERENCES views (name),
                                             FOREIGN KEY (action_id) REFERENCES actions (id) ON DELETE CASCADE
                                         ); """
@@ -173,7 +172,7 @@ def update_data(deck, db_file):
     conn = create_connection(db_file)
 
     # Alle Tables neu aufsetzen
-    create_tables(conn, db_file)
+    create_tables(conn)
 
     # Deck Speichern
     save_deck(conn, deck)
@@ -185,10 +184,10 @@ def update_data(deck, db_file):
 # Funktionen zum speichern eines Decks
 def save_deck(conn, streamdeck):
     # Zwischenspeichern der Seriennummer eines Decks
-    serial = streamdeck.hardware.load_serial_number()
+    serial = streamdeck.hardware.get_serial_number()
 
     # Falls ein Streamdeck, mit der Seriennummner schon vorhanden, ist dies löschenn
-    sql_delete_deck = f"""DELETE FROM decks WHERE serial = "{serial}";"""
+    sql_delete_deck = f"""DELETE FROM decks WHERE serial = '{serial}';"""
     execute_sql(conn, sql_delete_deck)
 
     # Streamdeck eintragen
@@ -328,29 +327,34 @@ def save_colors(conn, color, state, actionID):
 # Funktion zum abrufen der Daten zu einem Streamdeck
 def load_deck(streamdeck, db_file):
     # Abrufen der Serial des Decks
-    serial = streamdeck.hardware.load_serial_number()
+    serial = streamdeck.get_serial_number()
 
     # Verbindung zur Datenbank erstellen
     conn = create_connection(db_file)
 
     # Deck aus der Datenbank laden
-    sql_select_current_view = f"""SELECT * FROM decks WHERE serial = "{serial}" ;"""
+    sql_select_current_view = f"""SELECT current_view_name FROM decks WHERE serial = "{serial}" ;"""
     deck_db = execute_sql(conn, sql_select_current_view)
-
-    # initialisiren des decks
-    deck = ferret.StreamDeck(streamdeck, {}, "")
 
     # Ueberpruefen ob das Deck in der Datenbank existiert
     if (deck_db):
+        # Basisdaten fuer das Deck
+        base_current_view = ferret.View("basis", [])
+        base_views = {}
+        base_views["basis"] = base_current_view
+
+        # initialisiren des decks mit Basisdaten
+        deck = ferret.StreamDeck(streamdeck, base_views, base_current_view)
+
         # Derzeitige View aus deck nehmen
         current_view = deck_db[0][0]
 
         # Views vom deck laden mit Funktionsaufruf
         views = load_views(conn, deck, serial)
 
-        # Deck mit neuen Daten ueberschreiben
+        # Ueberschreiben der Basisdaten im deck
         deck.views = views
-        deck.current_view = current_view
+        deck.current_view = views[current_view]
 
         # Verbindung Schließen
         conn.close()
@@ -358,6 +362,11 @@ def load_deck(streamdeck, db_file):
         # Deck Objekt zurueck liefern
         return deck
     else:
+        # Basic View erstellen
+        current_view = "MainView"
+        baseView = ferret.View(current_view, [])
+        deck = ferret.StreamDeck(streamdeck, {}, baseView)
+        deck.add_view(baseView)
 
         # Verbindung schließen
         conn.close()
@@ -404,14 +413,14 @@ def load_keys(conn, deck, viewn_name):
 
     # Ueberpruefen ob Keys in der Datenbank existieren
     if (selected_keys):
-
         # Keys objekt mit daten aus der Datenbank befuellen und Funktionsaufruf um die Actionen zu laden
         for key in selected_keys:
             key_name = key[1]
             key_icon = key[2]
             key_action = load_action(conn, deck, key[0])
             key_label = key[3]
-            keys[position] = ferret.Key(key_name, key_icon, key_action, key_label)
+            current_key = ferret.Key(key_name, key_icon, key_action, key_label)
+            keys.insert(position, current_key)
             position += 1
 
         return keys
@@ -425,18 +434,21 @@ def load_keys(conn, deck, viewn_name):
 def load_action(conn, deck, key_id):
     # Alle Actions aus der Datenbank abrufen
     sql_select_action = f"""SELECT * FROM actions WHERE key_id = {key_id} ;"""
-    selected_action = execute_sql(conn, sql_select_action)
+    selected_action = execute_sql(conn, sql_select_action)[0]
 
-    # Action_id abrufen zum zwischen speichern
-    action_id = selected_action[0]
+    if (selected_action):
+        # Action_id abrufen zum zwischen speichern
+        action_id = selected_action[0]
 
-    # Bestimmen was fuer eine Action es ist und je nach dem die richtige Funktion aufrufen
-    if (selected_action[1] == "MQTT_Action"):
-        return load_mqtt_action(conn, action_id)
-    elif (selected_action[1] == "MQTT_Toggle"):
-        return load_mqtt_toggle(conn, action_id)
-    elif (selected_action[1] == "View_Action"):
-        return load_view_action(conn, deck, action_id)
+        # Bestimmen was fuer eine Action es ist und je nach dem die richtige Funktion aufrufen
+        if (selected_action[1] == "MQTT_Action"):
+            return load_mqtt_action(conn, action_id)
+        elif (selected_action[1] == "MQTT_Toggle"):
+            return load_mqtt_toggle(conn, action_id)
+        elif (selected_action[1] == "View_Action"):
+            return load_view_action(conn, deck, action_id)
+        elif (selected_action[1] == "None"):
+            return ferret.Action()
 
     # Sonst einfaches Action Objekt zurueck liefern
     else:
@@ -450,7 +462,6 @@ def load_mqtt_action(conn, action_id):
     selected_mqtt_action = execute_sql(conn, sql_select_mqtt_action)
 
     # Attribute bestrimmen mit Daten aus Datenbank oder Funktionsaufruf um sie abzufragen
-    client = load_client(conn, action_id)
     topic = selected_mqtt_action[0][2]
     payload = selected_mqtt_action[0][3]
     icons = load_icons(conn, action_id)
@@ -458,7 +469,7 @@ def load_mqtt_action(conn, action_id):
     colors = load_colors(conn, action_id)
 
     # MqttAction Objekt zurueck liefern
-    return ferret.MqttAction(client, topic, payload, icons, labels, colors)
+    return ferret.MqttAction( topic, payload, icons, labels, colors)
 
 
 # Funktion zum abrufen eines MQTT Toggles eines Keys
@@ -468,7 +479,6 @@ def load_mqtt_toggle(conn, action_id):
     selected_mqtt_toggle = execute_sql(conn, sql_select_mqtt_toggle)
 
     # Attribute bestrimmen mit Daten aus Datenbank oder Funktionsaufruf um sie abzufragen
-    client = load_client(conn, action_id)
     topic = selected_mqtt_toggle[0][2]
     payload = selected_mqtt_toggle[0][3]
     icons = load_icons(conn, action_id)
@@ -476,7 +486,7 @@ def load_mqtt_toggle(conn, action_id):
     colors = load_colors(conn, action_id)
 
     # MQTT Toggle Objekt zurueck liefern
-    return ferret.MqttToggle(client, topic, payload, icons, labels, colors)
+    return ferret.MqttToggle( topic, payload, icons, labels, colors)
 
 
 # Funktion zum abrufen einer View Action eines Keys
@@ -496,14 +506,18 @@ def load_view_action(conn, deck, action_id):
 def load_client(conn, action_id):
     # Client abrufen von der Action aus der Datenbank
     sql_select_clients = f"""SELECT * FROM mqtt_clients WHERE action_id = {action_id} ;"""
-    selected_client = execute_sql(conn, sql_select_clients)[0]
+    selected_client = execute_sql(conn, sql_select_clients)
 
-    # Client erstellen und initialisieren
-    client = mqtt.Client(selected_client[1])
-    client.connect(selected_client[2], selected_client[3])
+    print(selected_client)
+    if(selected_client):
+        # Client erstellen und initialisieren
+        client = mqtt.Client(selected_client[0][1])
+        client.connect(selected_client[0][2], selected_client[0][3])
 
-    # Client zurueck liefern
-    return client
+        # Client zurueck liefern
+        return client
+    else:
+        return mqtt.Client()
 
 
 # Funktion zum abrufen von Icons einer MQTT Action / Toggles

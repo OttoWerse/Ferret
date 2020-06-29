@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
     <data-source source="LOCAL" name="data" uuid="e7a429e7-2dea-4842-8e94-01578a13f90f">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>f6b03d74-17fd-4073-b916-99df959aa7fa</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:C:\Users\Kenny\Documents\GitHub\Ferret\Python\data.db</jdbc-url>
@@ -16,7 +16,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="data [2]" uuid="a8dd7d43-25d1-4763-a645-7d53d68b669d">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>f6b03d74-17fd-4073-b916-99df959aa7fa</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:C:\Users\Kenny\Documents\GitHub\Ferret\Python\db\data.db</jdbc-url>
@@ -26,6 +26,20 @@
         </library>
         <library>
           <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.31.1/sqlite-jdbc-3.31.1.jar</url>
+        </library>
+      </libraries>
+    </data-source>
+    <data-source source="LOCAL" name="data [3]" uuid="4f5dff32-7c0f-467c-9ec3-51ab793d36c3">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Otto Werse\PycharmProjects\Ferret\Python\core\data.db</jdbc-url>
+      <libraries>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.25.1/license.txt</url>
+        </library>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.25.1/sqlite-jdbc-3.25.1.jar</url>
         </library>
       </libraries>
     </data-source>

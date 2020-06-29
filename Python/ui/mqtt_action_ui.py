@@ -6,10 +6,7 @@ from Python.logic import ferret
 from Python.ui import list_ui
 
 
-def GUI(action=None):
-
-    if not action:
-        action = ferret.MqttAction()
+def GUI(action):
 
     root = Tk()
 
@@ -58,7 +55,6 @@ def GUI(action=None):
         action.client = action.client
         action.topic = e1.get()
         action.payload = e2.get()
-
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", save)

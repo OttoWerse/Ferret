@@ -1,33 +1,32 @@
+import logging
 from tkinter import *
-
 import paho.mqtt.client as mqtt
-
 from Python.logic import ferret
 from Python.ui import mqtt_action_ui, mqtt_toggle_view, view_action_ui
 
+logging.basicConfig(level=logging.INFO)
 dropdown = ["Mqtt Action", "Mqtt Toggle", "View Action"]
 
 
 def GUI(key):
     root = Tk()
-    action = key.action
 
     def egalfunction(args):
         if args == "Mqtt Action":
-            if isinstance(key.action, ferret.MqttAction):
-                mqtt_action_ui.GUI(action)
-            else:
-                mqtt_action_ui.GUI()
+            if not isinstance(key.action, ferret.MqttAction):
+                logging.info("adding a new MQTT action")
+                key.set_action(ferret.MqttAction())
+            mqtt_action_ui.GUI(key.action)
         elif args == "Mqtt Toggle":
-            if isinstance(key.action, ferret.MqttToggle):
-                mqtt_toggle_view.GUI(action)
-            else:
-                mqtt_toggle_view.GUI()
+            if not isinstance(key.action, ferret.MqttToggle):
+                logging.info("adding a new MQTT toggle")
+                key.set_action(ferret.MqttToggle())
+            mqtt_toggle_view.GUI(key.action)
         elif args == "View Action":
             if isinstance(key.action, ferret.ViewAction):
-                view_action_ui.GUI(action)
-            else:
-                view_action_ui.GUI()
+                logging.info("adding a new view action")
+                key.set_action(ferret.ViewAction())
+            view_action_ui.GUI(key.action)
 
     l1 = Label(root, text="Name")
     l2 = Label(root, text="Label")
@@ -56,14 +55,15 @@ def GUI(key):
     d1 = OptionMenu(root, variable, *dropdown, command=egalfunction)
     d1.grid(column=1, row=3)
 
-    if isinstance(action, ferret.MqttToggle):
-        variable.set(dropdown[1])
-    elif isinstance(action, ferret.MqttAction):
-        variable.set(dropdown[0])
-    elif isinstance(action, ferret.ViewAction):
-        variable.set(dropdown[2])
-    else:
-        print(type(action))
+    if key.action:
+        if isinstance(key.action, ferret.MqttToggle):
+            variable.set(dropdown[1])
+        elif isinstance(key.action, ferret.MqttAction):
+            variable.set(dropdown[0])
+        elif isinstance(key.action, ferret.ViewAction):
+            variable.set(dropdown[2])
+        else:
+            logging.info(f'unknown action type: {type(key.action)}')
 
     def save():
         key.name = e1.get()
