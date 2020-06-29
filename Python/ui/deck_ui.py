@@ -3,7 +3,7 @@ from tkinter import simpledialog
 from tkinter.ttk import *
 from PIL import Image, ImageTk
 import paho.mqtt.client as mqtt
-import StreamDeck
+from StreamDeck.Devices import StreamDeckMini, StreamDeckOriginal, StreamDeckOriginalV2, StreamDeckXL
 
 from Python.logic import ferret
 from Python.ui import key_ui
@@ -19,16 +19,16 @@ h, b = 0, 0
 def GUI(deck):
     global images, buttons, variable, d1, h, b
 
-    if isinstance(deck.hardware, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
+    if isinstance(deck.hardware, StreamDeckMini.StreamDeckMini):
         h = 2
         b = 3
-    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckOriginal.StreamDeckOriginal):
+    elif isinstance(deck.hardware, StreamDeckOriginal.StreamDeckOriginal):
         h = 3
         b = 5
-    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckOriginalV2.StreamDeckOriginalV2):
+    elif isinstance(deck.hardware, StreamDeckOriginalV2.StreamDeckOriginalV2):
         h = 3
         b = 5
-    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckXL.StreamDeckXL):
+    elif isinstance(deck.hardware, StreamDeckXL.StreamDeckXL):
         h = 4
         b = 8
     else:
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     }
 
     label = "labell delphine"
-    action = ferret.MqttAction(client1, topic1, payload, icons, labels, colors)
+    action = ferret.MqttAction(topic1, payload, icons, labels, colors)
     keys = [
         ferret.Key(name1, image, action, label),
         ferret.Key(name1, "repeat-off.png", action, label),
