@@ -13,59 +13,57 @@ logging.basicConfig(level=logging.INFO)
 root = Tk()
 images = []
 buttons = []
-variable = None
-d1 = None
-h, b = 0, 0
+current_view_selection = None
+views_dropdown = None
+deck_height, deck_width = 0, 0
 
 
 def GUI(deck):
-    global images, buttons, variable, d1, h, b
+    global images, buttons, current_view_selection, views_dropdown, deck_height, deck_width
 
     if isinstance(deck.hardware, StreamDeckMini.StreamDeckMini):
-        h = 2
-        b = 3
+        deck_height = 2
+        deck_width = 3
     elif isinstance(deck.hardware, StreamDeckOriginal.StreamDeckOriginal):
-        h = 3
-        b = 5
+        deck_height = 3
+        deck_width = 5
     elif isinstance(deck.hardware, StreamDeckOriginalV2.StreamDeckOriginalV2):
-        h = 3
-        b = 5
+        deck_height = 3
+        deck_width = 5
     elif isinstance(deck.hardware, StreamDeckXL.StreamDeckXL):
-        h = 4
-        b = 8
+        deck_height = 4
+        deck_width = 8
     else:
-        h = 3
-        b = 5
+        deck_height = 3
+        deck_width = 5
 
     def dialog():
-        answer = simpledialog.askstring("Input", "Benenne deine View",
+        answer = simpledialog.askstring("Input", "Enter view name",
                                         parent=root)
         if answer is not None:
             deck.add_view(ferret.View(name=answer))
             update(deck)
         else:
-            logging.info("Name is missing!")
+            logging.error("Name is missing!")
 
     # Dropdown Menu
-    variable = StringVar(root)
-    variable.set(deck.current_view.name)
-    d1 = OptionMenu(root, variable, command=DD)
-    d1.config(width=22)
-    d1.grid(column=0, row=0, columnspan=b - 1, sticky=W)
+    current_view_selection = StringVar(root)
+    current_view_selection.set(deck.current_view.name)
+    views_dropdown = OptionMenu(root, current_view_selection, command=select)
+    views_dropdown.config(width=22)
+    views_dropdown.grid(column=0, row=0, columnspan=deck_width - 1, sticky=W)
 
     b2 = Button(root, command=dialog)
-    b2.grid(column=b - 1, row=0)
+    b2.grid(column=deck_width - 1, row=0)
 
     update(deck)
-
-    # Button in Dropdown per if-case
 
     root.mainloop()
 
 
-def DD(deck, args):
-    deck.switch_view(args)
-    variable.set(args)
+def select(deck, new_view_selection):
+    deck.switch_view(new_view_selection)
+    current_view_selection.set(new_view_selection)
     update(deck)
 
 
@@ -77,28 +75,28 @@ def update(deck):
         button.destroy()
     for key in view.keys:
 
-        if y == b:
+        if y == deck_width:
             x = x + 1
             y = 0
 
-        i1 = Image.open(key.image)
-        p1 = ImageTk.PhotoImage(i1)
-        images.append(p1)
+        file_system_image = Image.open(key.image)
+        tkinter_image = ImageTk.PhotoImage(file_system_image)
+        images.append(tkinter_image)
 
-        def addit(key):
+        def add_action(key):
             return lambda: key_ui.GUI(key)
 
-        b1 = Button(root, image=p1, command=addit(key))
-        b1.grid(column=y, row=x)
+        key_button = Button(root, image=tkinter_image, command=add_action(key))
+        key_button.grid(column=y, row=x)
 
-        buttons.append(b1)
+        buttons.append(key_button)
         y = y + 1
 
-        #Save current data in database
-        db.update_data(deck,ferret.db_file)
+        # Save current data in database
+        db.update_data(deck, ferret.db_file)
 
-
-    d1["menu"].delete(0, "end")
-    for something in deck.views:
-        d1["menu"].add_command(label=something, command=lambda deck=deck, selection=something: DD(deck, selection))
-
+    views_dropdown["menu"].delete(0, "end")
+    for view in deck.views:
+        views_dropdown["menu"].add_command(label=view,
+                                           command=lambda containing_deck=deck, selection=view:
+                                           select(containing_deck, selection))
