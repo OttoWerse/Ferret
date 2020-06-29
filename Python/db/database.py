@@ -354,9 +354,17 @@ def load_deck(streamdeck, db_file):
         deck.views = views
         deck.current_view = current_view
 
+        # Verbindung Schließen
+        conn.close()
+
         # Deck Objekt zurueck liefern
         return deck
     else:
+
+        # Verbindung schließen
+        conn.close()
+
+        # leeres Object zurueck liefern
         return deck
 
 
