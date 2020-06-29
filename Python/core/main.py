@@ -3,8 +3,6 @@ from Python.logic import ferret
 from Python.ui import deck_ui
 from Python.logic.ferret import StreamDeck, Key, View
 
-import paho.mqtt.client as mqtt
-
 if __name__ == "__main__":
     # Create Keys
     keys0 = []
