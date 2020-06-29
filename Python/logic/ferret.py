@@ -1,15 +1,15 @@
 import os
-import paho.mqtt.client as mqtt
 
 from PIL import Image, ImageDraw, ImageFont
-from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
+import paho.mqtt.client as mqtt
+from Python.ui import deck_ui
 
 # Set the path for finding assets
-from Python import MainViewGUI
-
 ASSETS_PATH = os.path.join(os.path.dirname(os.getcwd()), "Assets")
 
+current_id = 0
+clients = []
 
 # Generates a custom tile with run-time generated text and custom image via the
 # PIL module.
@@ -96,13 +96,34 @@ class StreamDeck:
         # Delete the reverse reference to the deck inside the no longer current view
         self.current_view.deck = None
         # Assign a new current view
-        self.current_view = self.views.get(view_name)
+        print(f'the name is {view_name}, so the view should be: {self.views[view_name]}')
+        self.current_view = self.views[view_name]
         # Add a reverse reference to this deck to the new current view
         self.current_view.deck = self
+        index = 0
+        for key in self.current_view.keys:
+            key.update()
+            index = index + 1
 
     def add_view(self, view):
         # add the view to the dict
         # TODO: Error handling (view names need to be unique)
+
+        print(self.hardware.__dict__)
+
+        sw_size = len(view.keys)
+        hw_size = len(self.hardware.last_key_states)
+
+        if sw_size < hw_size:
+            print("---bigness not so big---")
+            keys = view.keys
+            for index in range(hw_size - sw_size):
+                print("SIZE", index + sw_size)
+                action = Action()
+                print(action)
+                view.add_key(index + sw_size, Key(action=action))
+                print(f'ACTION: {keys[index + sw_size].action}')
+
         self.views[view.name] = view
 
     def del_view(self, view):
@@ -125,7 +146,7 @@ class View:
             removes a key from the key list
     """
 
-    def __init__(self, name, keys):
+    def __init__(self, name="view", keys=[]):
         self.name = name
         # TODO: Add empty keys to fill the list
         self.keys = keys
@@ -141,10 +162,11 @@ class View:
         :return: None
         """
         # TODO: Error handling (if the position is already taken, ask for replacement confirmation)
+        # Add a reverse reference to the key
+        key.view = self
         # Add the key to the keys list
         self.keys.insert(position, key)
-        # Add a reverse reference to the key
-        self.keys[position - 1].view = self
+        # self.keys[position - 1].view = self
 
     def del_key(self, position):
         """
@@ -156,31 +178,7 @@ class View:
         pass
 
 
-class Key:
-    """
-    A key object represents a key, that is part of a view
-    (not to be confused wit the keys from the Elgato API, which represent actual physical keys on a StreamDeck)
-    Attributes:
-        name : str
-            the given name of the key
-        image : str
-            the name of the current image file (must be inside the assets folder)
-        action : action object
-            the action that is executed, when the key state is changed
-        label : str
-            the current label that is written on the key
-    """
-
-    def __init__(self, name, image, action, label=''):
-        self.name = name
-        # Adding assets path to image path
-        self.image = os.path.join(ASSETS_PATH, image)
-        self.action = action
-        self.action.key = self
-        self.label = label
-
-    def setImage(self, image):
-        self.image = os.path.join(ASSETS_PATH, image)
+i = 0
 
 
 class Action:
@@ -198,8 +196,30 @@ class Action:
     def __init__(self,
                  on_press=lambda: print("nothing to do"),
                  on_release=lambda: print("nothing to do")):
+        global i
         self.on_press = on_press
         self.on_release = on_release
+        self.id = i
+        i = i + 1
+        print(f'I is now: {i}')
+
+    def update(self):
+        print(self.id)
+
+        # Determine the StreamDeck hardware the key is currently displayed on
+        hardware = self.key.view.deck.hardware
+        # Determine the index of the key on the StreamDeck hardware
+        index = self.key.view.deck.current_view.keys.index(self.key)
+        # Get Icon, label and color from the dicts
+        icon = self.key.image
+        print(icon)
+        label = self.key.label
+        color = "#ffffff"
+        # Update the image on the hardware key
+        self.key.setImage(icon)
+        update_key_image(hardware, index, icon, label, color)
+        if self.key.view.deck:
+            deck_ui.update(self.key.view.deck)
 
 
 class MqttAction(Action):
@@ -224,13 +244,21 @@ class MqttAction(Action):
             a dict of colors corresponding to received payload
     """
 
-    def __init__(self, client, topic, payload, icons, labels, colors):
+    def __init__(self, topic='ferret', payload='hello world', icons={}, labels={}, colors={}):
+        global current_id
+        current_id = current_id + 1
+        broker = "192.169.0.203"
+        port = 1883
+        client = mqtt.Client(f'Ferret-{current_id}')
+        client.connect(broker, port)
+        clients.append(client)
         self.client = client
         self.topic = topic
         self.payload = payload
         self.icons = icons
         self.labels = labels
         self.colors = colors
+        self.last_message = ""
 
         # Subscribing to the given topics "out" channel (convention)
         self.client.subscribe(self.topic + '/out')
@@ -255,20 +283,9 @@ class MqttAction(Action):
         def on_message(client, userdata, message):
             # Decode the message
             str = message.payload.decode("utf-8")
-            # Determine the StreamDeck hardware the key is currently displayed on
-            hardware = self.key.view.deck.hardware
-            # Determine the index of the key on the StreamDeck hardware
-            index = self.key.view.deck.current_view.keys.index(self.key)
-            # Get Icon, label and color from the dicts
-            icon = icons[str]
-            label = labels[str]
-            color = colors[str]
-            # Update the image on the hardware key
-            self.key.setImage(icon)
-            update_key_image(hardware, index, icon, label, color)
+            self.last_message = str
+            self.update()
             self.set_payload(str)
-            if self.key.view.deck:
-                MainViewGUI.update(self.key.view.deck)
 
         # Assigning the function to the MQTT client
         self.client.on_message = on_message
@@ -278,6 +295,23 @@ class MqttAction(Action):
 
     def set_payload(self, payload):
         pass
+
+    def update(self):
+        str = self.last_message
+        # Determine the StreamDeck hardware the key is currently displayed on
+        hardware = self.key.view.deck.hardware
+        # Determine the index of the key on the StreamDeck hardware
+        index = self.key.view.deck.current_view.keys.index(self.key)
+        # Get Icon, label and color from the dicts
+        # TODO: Error handling: what if payload is not defined in dicts
+        icon = self.icons[str]
+        label = self.labels[str]
+        color = self.colors[str]
+        # Update the image on the hardware key
+        self.key.setImage(icon)
+        update_key_image(hardware, index, icon, label, color)
+        if self.key.view.deck:
+            deck_ui.update(self.key.view.deck)
 
 
 class MqttToggle(MqttAction):
@@ -290,8 +324,8 @@ class MqttToggle(MqttAction):
             the method to be executed, when the key is released up (sends an MQTT packet)
     """
 
-    def __init__(self, client, topic, payload, icons, labels, colors):
-        MqttAction.__init__(self, client, topic, payload, icons, labels, colors)
+    def __init__(self, topic, payload, icons, labels, colors):
+        MqttAction.__init__(self, topic, payload, icons, labels, colors)
 
     def get_payload(self):
         self.payload = not self.payload
@@ -333,3 +367,33 @@ class ViewAction(Action):
 
         # Assign the function to the attribute of the same name
         self.on_release = on_release
+
+
+class Key:
+    """
+    A key object represents a key, that is part of a view
+    (not to be confused wit the keys from the Elgato API, which represent actual physical keys on a StreamDeck)
+    Attributes:
+        name : str
+            the given name of the key
+        image : str
+            the name of the current image file (must be inside the assets folder)
+        action : action object
+            the action that is executed, when the key state is changed
+        label : str
+            the current label that is written on the key
+    """
+
+    def __init__(self, name="Key", image="blank.png", action=Action(), label=''):
+        self.name = name
+        # Adding assets path to image path
+        self.image = os.path.join(ASSETS_PATH, image)
+        self.action = action
+        self.action.key = self
+        self.label = label
+
+    def setImage(self, image):
+        self.image = os.path.join(ASSETS_PATH, image)
+
+    def update(self):
+        self.action.update()

@@ -1,32 +1,17 @@
 from StreamDeck.DeviceManager import DeviceManager
-from Python import MainViewGUI, ferret
-from Python.ferret import StreamDeck, Key, View
+from Python.logic import ferret
+from Python.ui import deck_ui
+from Python.logic.ferret import StreamDeck, Key, View
 
 import paho.mqtt.client as mqtt
 
 if __name__ == "__main__":
-    # Create a client
-    broker = "192.169.0.203"
-    port = 1883
-
-    clients = []
-
-    client1 = mqtt.Client("Ferret-10")
-    client1.connect(broker, port)
-    clients.append(client1)
-
-    client2 = mqtt.Client("Ferret-20")
-    client2.connect(broker, port)
-    clients.append(client2)
-
-    client3 = mqtt.Client("Ferret-30")
-    client3.connect(broker, port)
-    clients.append(client3)
-
     # Create Keys
     keys0 = []
+    keys1 = []
     # Create a View
     view0 = View('mainView', keys0)
+    view1 = View('testView', keys1)
     # Create Views
     views = {
         'mainView': view0
@@ -35,25 +20,35 @@ if __name__ == "__main__":
     topic1 = 'mqtt-test'
     topic2 = 'mqtt-test-2'
     topic3 = 'mqtt-test-3'
-    payload = 'ping'
-    icons = {
+    payload = 'false'
+    icons1 = {
+        'ping': 'repeat.png',
+    }
+    labels1 = {
+        'ping': 'ping',
+    }
+    colors1 = {
+        'ping': '#ff00ff',
+    }
+    view1.add_key(1, Key('Key1', 'repeat.png', ferret.MqttAction(topic1, payload, icons1, labels1, colors1)))
+    icons2 = {
         'true': 'repeat.png',
         'false': 'repeat-off.png',
     }
-    labels = {
+    icons2 = {
+        'true': 'repeat.png',
+        'false': 'repeat-off.png',
+    }
+    labels2 = {
         'true': 'An',
         'false': 'Aus',
     }
-    colors = {
+    colors2 = {
         'true': '#ff00ff',
         'false': '#00ffff',
     }
-    # Add a key
-    view0.add_key(1, Key('Key1', 'repeat.png', ferret.MqttAction(client1, topic1, payload, icons, labels, colors)))
-    view0.add_key(2,
-                  Key('Key2', 'repeat.png', ferret.MqttToggle(client2, topic2, payload, icons, labels, colors)))
-    view0.add_key(3,
-                  Key('Key3', 'repeat.png', ferret.MqttToggle(client3, topic3, payload, icons, labels, colors)))
+    view1.add_key(2,
+                  Key('Key2', 'repeat.png', ferret.MqttToggle(topic2, payload, icons2, labels2, colors2)))
 
     # Find StreamDeck
     streamdecks = DeviceManager().enumerate()
@@ -67,7 +62,9 @@ if __name__ == "__main__":
         # Create a Stream Deck
         deck = StreamDeck(streamdeck, views, views.get('mainView'))
 
-    for client in clients:
+    deck.add_view(view1)
+
+    for client in ferret.clients:
         client.loop_start()
 
-    MainViewGUI.GUI(deck)
+    deck_ui.GUI(deck)

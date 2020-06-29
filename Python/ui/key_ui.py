@@ -2,7 +2,8 @@ from tkinter import *
 
 import paho.mqtt.client as mqtt
 
-from Python import ferret, AddMQTTActionGUI, MQTTToggleGUI, ViewActionGUI
+from Python.logic import ferret
+from Python.ui import mqtt_action_ui, mqtt_toggle_view, view_action_ui
 
 dropdown = ["Mqtt Action", "Mqtt Toggle", "View Action"]
 
@@ -14,19 +15,19 @@ def GUI(key):
     def egalfunction(args):
         if args == "Mqtt Action":
             if isinstance(key.action, ferret.MqttAction):
-                AddMQTTActionGUI.GUI(action)
+                mqtt_action_ui.GUI(action)
             else:
-                AddMQTTActionGUI.GUI()
+                mqtt_action_ui.GUI()
         elif args == "Mqtt Toggle":
             if isinstance(key.action, ferret.MqttToggle):
-                MQTTToggleGUI.GUI(action)
+                mqtt_toggle_view.GUI(action)
             else:
-                MQTTToggleGUI.GUI()
+                mqtt_toggle_view.GUI()
         elif args == "View Action":
             if isinstance(key.action, ferret.ViewAction):
-                ViewActionGUI.GUI(action)
+                view_action_ui.GUI(action)
             else:
-                ViewActionGUI.GUI()
+                view_action_ui.GUI()
 
     l1 = Label(root, text="Name")
     l2 = Label(root, text="Label")

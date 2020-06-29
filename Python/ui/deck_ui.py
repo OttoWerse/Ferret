@@ -5,7 +5,8 @@ from PIL import Image, ImageTk
 import paho.mqtt.client as mqtt
 import StreamDeck
 
-from Python import ferret, AddEditKeyGUI
+from Python.logic import ferret
+from Python.ui import key_ui
 
 root = Tk()
 images = []
@@ -18,18 +19,16 @@ h, b = 0, 0
 def GUI(deck):
     global images, buttons, variable, d1, h, b
 
-    gdeck = deck
-
-    if isinstance(deck, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
+    if isinstance(deck.hardware, StreamDeck.Devices.StreamDeckMini.StreamDeckMini):
         h = 2
         b = 3
-    elif isinstance(deck, StreamDeck.Devices.StreamDeckOriginal.StreamDeckOriginal):
+    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckOriginal.StreamDeckOriginal):
         h = 3
         b = 5
-    elif isinstance(deck, StreamDeck.Devices.StreamDeckOriginalV2.StreamDeckOriginalV2):
+    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckOriginalV2.StreamDeckOriginalV2):
         h = 3
         b = 5
-    elif isinstance(deck, StreamDeck.Devices.StreamDeckXL.StreamDeckXL):
+    elif isinstance(deck.hardware, StreamDeck.Devices.StreamDeckXL.StreamDeckXL):
         h = 4
         b = 8
     else:
@@ -40,20 +39,10 @@ def GUI(deck):
         answer = simpledialog.askstring("Input", "Benenne deine View",
                                         parent=root)
         if answer is not None:
-            deck.views[answer] = ferret.View(name=answer, keys=[])
+            deck.add_view(ferret.View(name=answer))
             update(deck)
         else:
             print("Also kein Name")
-
-    def edview():
-        kays = [
-            ferret.Key(name1, image, action, label),
-            ferret.Key(name1, "repeat-off.png", action, label),
-            ferret.Key(name1, image, action, label),
-        ]
-        deck.views["test"] = ferret.View(name="Probe", keys=kays)
-        deck.current_view = deck.views["test"]
-        update()
 
     # Dropdown Menu
     variable = StringVar(root)
@@ -72,10 +61,10 @@ def GUI(deck):
     root.mainloop()
 
 
-def DD(args):
-    deck.current_view = deck.views[args]
+def DD(deck, args):
+    deck.switch_view(args)
     variable.set(args)
-    update()
+    update(deck)
 
 
 def update(deck):
@@ -95,7 +84,7 @@ def update(deck):
         images.append(p1)
 
         def addit(key):
-            return lambda: AddEditKeyGUI.GUI(key)
+            return lambda: key_ui.GUI(key)
 
         b1 = Button(root, image=p1, command=addit(key))
         b1.grid(column=y, row=x)
@@ -106,7 +95,7 @@ def update(deck):
     d1["menu"].delete(0, "end")
     for something in deck.views:
         print(something)
-        d1["menu"].add_command(label=something, command=lambda selection=something: DD(selection))
+        d1["menu"].add_command(label=something, command=lambda deck=deck, selection=something: DD(deck, selection))
 
 
 if __name__ == "__main__":
