@@ -2,7 +2,7 @@ import logging
 from tkinter import *
 import paho.mqtt.client as mqtt
 from Python.logic import ferret
-from Python.ui import mqtt_action_ui, mqtt_toggle_view, view_action_ui
+from Python.ui import mqtt_action_ui, mqtt_toggle_ui, view_action_ui
 
 logging.basicConfig(level=logging.INFO)
 dropdown = ["Mqtt Action", "Mqtt Toggle", "View Action"]
@@ -21,7 +21,7 @@ def GUI(key):
             if not isinstance(key.action, ferret.MqttToggle):
                 logging.info("adding a new MQTT toggle")
                 key.set_action(ferret.MqttToggle())
-            mqtt_toggle_view.GUI(key.action)
+            mqtt_toggle_ui.GUI(key.action)
         elif current_selection == "View Action":
             if isinstance(key.action, ferret.ViewAction):
                 logging.info("adding a new view action")
