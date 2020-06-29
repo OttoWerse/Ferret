@@ -1,22 +1,18 @@
 from tkinter import *
-
-import paho.mqtt.client as mqtt
-
-from Python.logic import ferret
 from Python.ui import list_ui
 
 
 def GUI(action):
-
     root = Tk()
 
-    def setIcons():
+    # Setter for Icons, Colors and Labels
+    def set_icons():
         list_ui.GUI(action.icons)
 
-    def setColors():
+    def set_colors():
         list_ui.GUI(action.colors)
 
-    def setLabels():
+    def set_labels():
         list_ui.GUI(action.labels)
 
     # 5 Labels
@@ -33,9 +29,9 @@ def GUI(action):
     l5.grid(column=0, row=4)
 
     # 3 Buttons
-    b1 = Button(root, text="+", width=10, command=setIcons)
-    b2 = Button(root, text="+", width=10, command=setColors)
-    b3 = Button(root, text="+", width=10, command=setLabels)
+    b1 = Button(root, text="+", width=10, command=set_icons)
+    b2 = Button(root, text="+", width=10, command=set_colors)
+    b3 = Button(root, text="+", width=10, command=set_labels)
 
     b1.grid(column=3, row=2)
     b2.grid(column=3, row=3)
@@ -44,13 +40,16 @@ def GUI(action):
     # 2 Entries
     e1 = Entry(root)
     e2 = Entry(root)
+
+    # Setting default entries
     e1.insert(END, action.topic)
     e2.insert(END, action.payload)
 
     e1.grid(column=3, row=0)
     e2.grid(column=3, row=1)
 
-
+    # saving the values of client and topic for further use
+    # then closes the window
     def save():
         action.client = action.client
         action.topic = e1.get()
@@ -61,28 +60,3 @@ def GUI(action):
 
     root.mainloop()
 
-
-if __name__ == "__main__":
-    # Create a client
-    broker = "192.169.0.203"
-    port = 1883
-
-    client1 = mqtt.Client("Ferret-1")
-    # client1.connect(broker, port)
-
-    topic1 = 'mqtt-test'
-    payload = 'ping'
-    icons = {
-        'true': 'repeat.png',
-        'false': 'repeat-off.png',
-    }
-    labels = {
-        'true': 'An',
-        'false': 'Aus',
-    }
-    colors = {
-        'true': '#ff00ff',
-        'false': '#00ffff',
-    }
-
-    GUI(ferret.MqttAction(client1, topic1, payload, icons, labels, colors))
