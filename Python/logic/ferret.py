@@ -250,7 +250,7 @@ class MqttAction(Action):
         broker = "192.169.0.203"
         port = 1883
         client = mqtt.Client(f'Ferret-{current_id}')
-        # client.connect(broker, port)
+        client.connect(broker, port)
         clients.append(client)
         self.client = client
         self.topic = topic

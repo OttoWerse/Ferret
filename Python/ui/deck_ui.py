@@ -6,7 +6,6 @@ import paho.mqtt.client as mqtt
 from StreamDeck.Devices import StreamDeckMini, StreamDeckOriginal, StreamDeckOriginalV2, StreamDeckXL
 
 from Python.logic import ferret
-from Python.logic.ferret import StreamDeck
 from Python.ui import key_ui
 
 root = Tk()
