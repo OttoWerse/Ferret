@@ -1,9 +1,7 @@
-import os
 import sqlite3
+import Python.logic.ferret as ferret
 
 from paho import mqtt
-
-import Python.ferret as ferret
 from sqlite3 import Error
 
 
@@ -41,7 +39,7 @@ def execute_sql(conn, sql_string):
 
 
 # Funktionen zum erstellen der Tabellen in der Datenbank
-def create_tables(conn, db_file):
+def create_tables(conn):
     """
     Erstellen einer Datenbank mit Tabellen zum Speichern für ausfälle
     :param db_file:
@@ -252,7 +250,7 @@ def save_action(conn, action, keyID):
     elif (type(action).__name__ == 'MqttToggle'):
         save_mqtt_toggle(conn, action, id)
     elif (type(action).__name__ == 'ViewAction'):
-        save_view_action(conn, action, id, serial)
+        save_view_action(conn, action, id)
     else:
         name = "None"
 
@@ -343,7 +341,7 @@ def load_deck(streamdeck, db_file):
     deck = ferret.StreamDeck(streamdeck, {}, "")
 
     # Ueberpruefen ob das Deck in der Datenbank existiert
-    if (current_view):
+    if (deck_db):
         # Derzeitige View aus deck nehmen
         current_view = deck_db[0][0]
 

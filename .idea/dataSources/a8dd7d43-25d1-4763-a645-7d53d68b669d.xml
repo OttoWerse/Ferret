@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="data [2]">
+  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.18">
+    <root id="1">
+      <ServerVersion>3.31.1</ServerVersion>
+    </root>
+    <schema id="2" parent="1" name="main">
+      <Current>1</Current>
+    </schema>
+    <collation id="3" parent="1" name="BINARY"/>
+    <collation id="4" parent="1" name="NOCASE"/>
+    <collation id="5" parent="1" name="RTRIM"/>
+    <table id="6" parent="2" name="actions"/>
+    <table id="7" parent="2" name="decks"/>
+    <table id="8" parent="2" name="dic_colors"/>
+    <table id="9" parent="2" name="dic_icons"/>
+    <table id="10" parent="2" name="dic_labels"/>
+    <table id="11" parent="2" name="keys"/>
+    <table id="12" parent="2" name="mqtt_actions"/>
+    <table id="13" parent="2" name="mqtt_clients"/>
+    <table id="14" parent="2" name="mqtt_toggles"/>
+    <table id="15" parent="2" name="sqlite_master">
+      <System>1</System>
+    </table>
+    <table id="16" parent="2" name="view_actions"/>
+    <table id="17" parent="2" name="views"/>
+    <column id="18" parent="6" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="19" parent="6" name="type">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="20" parent="6" name="key_id">
+      <Position>3</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="21" parent="6">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="22" parent="6">
+      <ColNames>key_id</ColNames>
+      <RefTableName>keys</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="23" parent="7" name="serial">
+      <Position>1</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="24" parent="7" name="current_view_name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <index id="25" parent="7" name="sqlite_autoindex_decks_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>serial</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="26" parent="7">
+      <ColNames>serial</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_decks_1</UnderlyingIndexName>
+    </key>
+    <column id="27" parent="8" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="28" parent="8" name="hexvalue">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="29" parent="8" name="state">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="30" parent="8" name="action_id">
+      <Position>4</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="31" parent="8">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="32" parent="8">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="33" parent="9" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="34" parent="9" name="icon">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="35" parent="9" name="state">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="36" parent="9" name="action_id">
+      <Position>4</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="37" parent="9">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="38" parent="9">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="39" parent="10" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="40" parent="10" name="label">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="41" parent="10" name="state">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="42" parent="10" name="action_id">
+      <Position>4</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="43" parent="10">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="44" parent="10">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="45" parent="11" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="46" parent="11" name="name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="47" parent="11" name="icon_path">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="48" parent="11" name="label">
+      <Position>4</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="49" parent="11" name="view_name">
+      <Position>5</Position>
+      <DataType>text|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="50" parent="11">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="51" parent="11">
+      <ColNames>view_name</ColNames>
+      <RefTableName>views</RefTableName>
+      <RefColNames>name</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="52" parent="12" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="53" parent="12" name="client">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="54" parent="12" name="topic">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="55" parent="12" name="payload">
+      <Position>4</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="56" parent="12" name="action_id">
+      <Position>5</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="57" parent="12">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="58" parent="12">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="59" parent="13" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="60" parent="13" name="client_name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="61" parent="13" name="broker">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="62" parent="13" name="port">
+      <Position>4</Position>
+      <DataType>int|0s</DataType>
+    </column>
+    <column id="63" parent="13" name="action_id">
+      <Position>5</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="64" parent="13">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="65" parent="13">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="66" parent="14" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="67" parent="14" name="topic">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="68" parent="14" name="payload">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="69" parent="14" name="action_id">
+      <Position>4</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="70" parent="14">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="71" parent="14">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="72" parent="15" name="type">
+      <Position>1</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="73" parent="15" name="name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="74" parent="15" name="tbl_name">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="75" parent="15" name="rootpage">
+      <Position>4</Position>
+      <DataType>int|0s</DataType>
+    </column>
+    <column id="76" parent="15" name="sql">
+      <Position>5</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="77" parent="16" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+    </column>
+    <column id="78" parent="16" name="view_name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="79" parent="16" name="deck_serial">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="80" parent="16" name="action_id">
+      <Position>4</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <key id="81" parent="16">
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="82" parent="16">
+      <ColNames>view_name</ColNames>
+      <RefTableName>views</RefTableName>
+      <RefColNames>name</RefColNames>
+    </foreign-key>
+    <foreign-key id="83" parent="16">
+      <ColNames>deck_serial</ColNames>
+      <RefTableName>decks</RefTableName>
+      <RefColNames>serial</RefColNames>
+    </foreign-key>
+    <foreign-key id="84" parent="16">
+      <ColNames>action_id</ColNames>
+      <RefTableName>actions</RefTableName>
+      <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+    <column id="85" parent="17" name="name">
+      <Position>1</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <column id="86" parent="17" name="deck_serial">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </column>
+    <index id="87" parent="17" name="sqlite_autoindex_views_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>name</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="88" parent="17">
+      <ColNames>name</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_views_1</UnderlyingIndexName>
+    </key>
+    <foreign-key id="89" parent="17">
+      <ColNames>deck_serial</ColNames>
+      <RefTableName>decks</RefTableName>
+      <RefColNames>serial</RefColNames>
+      <OnDelete>cascade</OnDelete>
+    </foreign-key>
+  </database-model>
+</dataSource>
